@@ -1,0 +1,40 @@
+# NewsMead API
+
+A news recommender API built with FastAPI for the NewsMead mobile app.
+
+## Tech Stack
+
+- Python/FastAPI
+
+## API Endpoints
+
+API URL: _not yet available_
+
+List of **GET** endpoints:
+
+- `/search?q=[query]` - returns articles searched with the query and scraped from Google News
+- `/parse?url=[url]` - returns scraped content of the article from the given url
+
+## How to run
+
+> **NOTE**: Must have Python version **3.9** for recommenders package.
+
+1. Install requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+2. Go to ...
+
+```bash
+cd ...
+```
+
+3. Run server
+
+```bash
+...
+# or
+...
+```
