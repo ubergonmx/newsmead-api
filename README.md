@@ -34,16 +34,8 @@ List of **GET** endpoints:
 pip install -r requirements.txt
 ```
 
-2. Go to ...
+2. Run server
 
 ```bash
-cd ...
-```
-
-3. Run server
-
-```bash
-...
-# or
-...
+uvicorn main:app --reload
 ```
