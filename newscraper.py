@@ -156,13 +156,25 @@ class NewsScraper:
         self.strategy = strategy
 
     async def scrape_all(self) -> list:
-        return self.strategy.scrape_all()
+        try:
+            return self.strategy.scrape_all()
+        except Exception as e:
+            print(f"Error scraping {self.strategy._cname()}: {e}")
+            return []
 
     async def scrape_category(self, category: Category) -> list:
-        return self.strategy.scrape_category(category)
+        try:
+            return self.strategy.scrape_category(category)
+        except Exception as e:
+            print(f"Error scraping {self.strategy._cname()}: {e}")
+            return []
 
     async def scrape_url(self, url: str) -> dict:
-        return self.strategy.scrape_url(url)
+        try:
+            return self.strategy.scrape_url(url)
+        except Exception as e:
+            print(f"Error scraping {self.strategy._cname()}: {e}")
+            return []
 
 
 # Define a mapping between Provider and ScraperStrategy
