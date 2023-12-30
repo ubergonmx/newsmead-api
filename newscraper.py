@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-import requests
+import httpx
 import xml.etree.ElementTree as ET
 
 
@@ -24,33 +24,34 @@ class Provider(Enum):
 
 class ScraperStrategy(ABC):
     @abstractmethod
-    def scrape_all(self):
+    async def scrape_all(self):
         pass
 
     @abstractmethod
-    def scrape_category(self, category: Category):
+    async def scrape_category(self, category: Category):
         pass
 
     @abstractmethod
-    def scrape_url(self, url: str):
+    async def scrape_url(self, url: str):
         pass
 
-    def fetch_rss(self, url: str):
-        # Download the RSS feed
-        rss = requests.get(url)
+    async def fetch_rss(self, url: str):
+        async with httpx.AsyncClient() as client:
+            # Asynchronously download the RSS feed
+            rss_response = await client.get(url)
 
-        # Check if the RSS feed was successfully downloaded
-        if rss.status_code == 200:
-            # Parse the XML document
-            root = ET.fromstring(rss.content)
-        else:
-            # Print the error code
-            print("RSS status code:", rss.status_code)
-            # Return an empty list
-            return []
+            # Check if the RSS feed was successfully downloaded
+            if rss_response.status_code == 200:
+                # Parse the XML document
+                root = ET.fromstring(rss_response.content)
+            else:
+                # Print the error code
+                print("RSS status code:", rss_response.status_code)
+                # Return an empty list
+                return []
 
-        # Return the root element
-        return root
+            # Return the root element
+            return root
 
     def parse_date(self, date):
         # Parse the date
@@ -72,50 +73,50 @@ class GMANewsScraper(ScraperStrategy):
         Category.Entertainment: "showbiz",
     }
 
-    def scrape_all(self):
+    async def scrape_all(self):
         for category in self.category_mapping:
             self.scrape_category(category)
 
-    def scrape_category(self, category: Category):
+    async def scrape_category(self, category: Category):
         if category in self.category_mapping:
             mapped_category = self.category_mapping[category]
             print(f"Scraping GMA News for {category} ({mapped_category})")
         else:
             print(f"Category mapping not defined for GMA News: {category}")
 
-    def scrape_url(self, url: str):
+    async def scrape_url(self, url: str):
         return super().scrape_url(url)
 
 
 class PhilstarScraper(ScraperStrategy):
     category_mapping = {Category.Opinion: "Opinion"}
 
-    def scrape_all(self):
+    async def scrape_all(self):
         for category in self.category_mapping:
             self.scrape_category(category)
 
-    def scrape_category(self, category: Category):
+    async def scrape_category(self, category: Category):
         if category in self.category_mapping:
             mapped_category = self.category_mapping[category]
             print(f"Scraping Philstar for {category} ({mapped_category})")
         else:
             print(f"Category mapping not defined for Philstar: {category}")
 
-    def scrape_url(self, url: str):
+    async def scrape_url(self, url: str):
         return super().scrape_url(url)
 
 
 class NewsScraper:
-    def __init__(self, strategy: ScraperStrategy):
+    async def __init__(self, strategy: ScraperStrategy):
         self.strategy = strategy
 
-    def scrape_all(self):
+    async def scrape_all(self):
         return self.strategy.scrape_all()
 
-    def scrape_category(self, category: Category):
+    async def scrape_category(self, category: Category):
         return self.strategy.scrape(category)
 
-    def scrape_url(self, url: str):
+    async def scrape_url(self, url: str):
         return self.strategy.scrape_url(url)
 
 
@@ -127,7 +128,7 @@ provider_strategy_mapping = {
 }
 
 
-def get_scraper_strategy(provider: Provider) -> ScraperStrategy:
+async def get_scraper_strategy(provider: Provider) -> ScraperStrategy:
     return provider_strategy_mapping.get(provider)
 
 
