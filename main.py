@@ -6,12 +6,24 @@ import logging
 import random
 import string
 import time
+from newscraper import NewsScraper, Provider, get_scraper_strategy
 
 
 # Configure startup and shutdown events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
+        # Scraping
+        logger.info("Scraping...")
+        # Loop each provider and perform scraping
+        for provider in Provider:
+            # Get scraper strategy
+            scraper_strategy = await get_scraper_strategy(provider)
+            # Create news scraper
+            news_scraper = NewsScraper(scraper_strategy)
+            # Scrape all categories
+            await news_scraper.scrape_all()
+
         # Setup ML model
         logger.info("Setting up ML model...")
         yield
