@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Request
-from proxyscrape import scrape_proxies
+from proxyscraper import scrape_proxies
 import sqlite3
 import logging
 import random
