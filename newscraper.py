@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 import httpx
 import xml.etree.ElementTree as ET
+import datetime
 
 
 class Category(Enum):
@@ -33,6 +34,10 @@ class ScraperStrategy(ABC):
 
     @abstractmethod
     async def scrape_url(self, url: str):
+        pass
+
+    @abstractmethod
+    async def parse_rss(self, root) -> list:
         pass
 
     async def fetch_rss(self, url: str):
