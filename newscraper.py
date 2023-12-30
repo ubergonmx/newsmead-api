@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+import requests
+import xml.etree.ElementTree as ET
 
 
 class Category(Enum):
