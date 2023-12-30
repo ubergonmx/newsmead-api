@@ -60,6 +60,9 @@ class ScraperStrategy(ABC):
         # Return the date in the format Nov 01, 2020
         return date.strftime("%b %d, %Y")
 
+    def get_reversed_mapping(self, mapping):
+        return {v: k for k, v in mapping.items()}
+
 
 class GMANewsScraper(ScraperStrategy):
     rss_url = "https://data.gmanetwork.com/gno/rss/[category]/feed.xml"
