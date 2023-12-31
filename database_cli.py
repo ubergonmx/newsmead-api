@@ -1,4 +1,5 @@
-import sqlite3, os
+import sqlite3
+import os
 from database_utils import (
     run_query,
     table_exists,
