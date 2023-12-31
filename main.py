@@ -9,6 +9,8 @@ import time
 from newsscraper import NewsScraper, Provider, get_scraper_strategy, GMANewsScraper
 from database_utils import insert_articles, get_articles
 
+# [ ] TODO: Add pydantic for validation
+
 
 # Configure startup and shutdown events
 @asynccontextmanager
@@ -72,7 +74,7 @@ def get_proxies():
     return {"proxies": proxies}
 
 
-# TODO: Add pagination
+# [ ] TODO: Add pagination
 
 
 # Get articles
