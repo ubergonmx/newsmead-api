@@ -1,5 +1,7 @@
-import sqlite3, os
+import sqlite3
+import os
 import logging
+
 
 # Logging
 logger = logging.getLogger(__name__)
@@ -93,7 +95,7 @@ def drop_table(conn, table_name):
 
 
 def show_table(conn, table_name):
-    return conn.execute(f"SELECT * FROM {table_name}").fetchall()
+    conn.execute(f"SELECT * FROM {table_name}").fetchall()
 
 
 def insert_data(conn, data, insert_query=db_insert_query):

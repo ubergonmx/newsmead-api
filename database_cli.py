@@ -1,5 +1,6 @@
 import sqlite3, os
 from database_utils import (
+    run_query,
     table_exists,
     show_table,
     drop_table,
@@ -32,7 +33,7 @@ if not (table_exists(conn, table_name)):
 
 while True:
     ans = input(
-        "\n\nUSE DB Browser for more features--\n\nWhat do you want to do?\n 1) Show table \n 2) Reset table \n 3) Exit \n\n >"
+        "\n\nUSE DB Browser for more features--\n\nWhat do you want to do?\n 1) Show table \n 2) Reset table \n 3) Custom SQL command \n q) Exit \n\n >"
     )
 
     if ans == "1":
@@ -47,5 +48,12 @@ while True:
         exit()
 
     elif ans == "3":
+        sql = input("Enter SQL command: ")
+        try:
+            run_query(conn, sql)
+        except Exception as e:
+            print(f"Error: {e}")
+
+    elif ans == "q":
         conn.close()
         quit()
