@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import json
 from database_utils import (
     run_query,
     table_exists,
@@ -34,11 +35,16 @@ if not (table_exists(conn, table_name)):
 
 while True:
     ans = input(
-        "\n\nUSE DB Browser for more features--\n\nWhat do you want to do?\n 1) Show table \n 2) Reset table \n 3) Custom SQL command \n q) Exit \n\n >"
+        "\n\nWhat do you want to do?\n 1) Show table \n 2) Reset table \n 3) Custom SQL command \n q) Exit \n\n >"
     )
 
     if ans == "1":
-        print(show_table(conn, table_name))
+        table = show_table(conn, table_name)
+        if table == None:
+            print(f'Table "{table_name}" is empty.')
+            continue
+        table_str = f'[{", ".join(table)}]'
+        print(json.dumps(json.loads(table_str), indent=2))
     elif ans == "2":
         if input("This process is NOT reversible. Are you sure (y/n): ") == "y":
             drop_table(conn, table_name)
