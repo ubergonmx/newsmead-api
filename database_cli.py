@@ -43,8 +43,7 @@ while True:
         if table == None:
             print(f'Table "{table_name}" is empty.')
             continue
-        table_str = f'[{", ".join(table)}]'
-        print(json.dumps(json.loads(table_str), indent=2))
+        print(json.dumps(table, indent=2))
     elif ans == "2":
         if input("This process is NOT reversible. Are you sure (y/n): ") == "y":
             drop_table(conn, table_name)
