@@ -1,9 +1,16 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+from bs4 import BeautifulSoup
+from newspaper import Article
+from datetime import datetime
 import httpx
 import asyncio
 import xml.etree.ElementTree as ET
-import datetime
+import readtime
+import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 class Category(Enum):
@@ -45,7 +52,7 @@ class ScraperStrategy(ABC):
     async def scrape_category(self, category: Category) -> list:
         if category in self._category_mapping:
             mapped_category = self._category_mapping[category]
-            print(f"{self._cname()} scraping for {category} ({mapped_category})")
+            logger.info(f"{self._cname()} scraping for {category} ({mapped_category})")
 
             # Replace the [category] placeholder with the mapped category
             rss_url = self._rss_url.replace("[category]", mapped_category)
@@ -54,16 +61,18 @@ class ScraperStrategy(ABC):
             rss_root = await self.fetch_rss(rss_url)
 
             # Extract URLs from the RSS feed
-            urls = await self.parse_rss(rss_root, mapped_category)
+            articles = await self.parse_rss(rss_root, mapped_category)
 
             # Scrape each URL asynchronously and return the results
-            tasks = [self.scrape_url(url) for url in urls]
+            tasks = [self.scrape_article(article) for article in articles]
             return await asyncio.gather(*tasks)
         else:
-            print(f"Category mapping not defined for {self._cname()}: {category}")
+            logger.error(
+                f"Category mapping not defined for {self._cname()}: {category}"
+            )
 
     @abstractmethod
-    async def scrape_url(self, url: str) -> dict:
+    async def scrape_article(self, article: dict) -> dict:
         pass
 
     @abstractmethod
@@ -81,7 +90,7 @@ class ScraperStrategy(ABC):
                 root = ET.fromstring(rss_response.content)
             else:
                 # Print the error code
-                print("RSS status code:", rss_response.status_code)
+                logger.error(f"RSS status code: {rss_response.status_code}")
                 # Return an empty list
                 return []
 
@@ -122,6 +131,7 @@ class GMANewsScraper(ScraperStrategy):
 
     async def parse_rss(self, root, category) -> list:
         articles = []
+        reversed_mapping = self.get_reversed_mapping(self._category_mapping)
         # Iterate through each 'item' in the RSS feed
         for item in root.findall(".//item"):
             title = item.find("title").text
@@ -139,7 +149,7 @@ class GMANewsScraper(ScraperStrategy):
             # Create a dictionary for each article
             article = {
                 "title": title,
-                "category": self.get_reversed_mapping()[category].value,
+                "category": reversed_mapping[category].value,
                 "source": Provider.GMANews.value,
                 "url": link,
                 # "description": description,
@@ -150,31 +160,76 @@ class GMANewsScraper(ScraperStrategy):
             # Append the dictionary to the list of articles
             articles.append(article)
 
+        return articles
+
+    async def scrape_article(self, article: dict) -> dict:
+        async with httpx.AsyncClient() as client:
+            try:
+                # Asynchronously download the article
+                response = await client.get(article["url"])
+            except Exception as e:
+                logger.error(f"Error downloading article: {e}")
+                return []
+
+            # Check if the article was successfully downloaded
+            if response.status_code != 200:
+                # Print the error code
+                logger.info(f"Article status code: {response.status_code}")
+                # Return an empty list
+                return []
+
+            # Parse the HTML document with BeautifulSoup to get the author
+            soup = BeautifulSoup(response.content, "html.parser")
+            author = soup.find("meta", {"name": "author"})
+            if author is not None:
+                author = author.get("content")
+                if "," in author:
+                    author = author.split(",")[0]
+                author = author.strip()
+            else:
+                author = None
+
+            # Parse the article using newspaper3k
+            news_article = Article(str(response.url))
+            news_article.download()
+
+            # Check if the article was successfully downloaded
+            if news_article.download_state == 2:
+                # Parse the article
+                news_article.parse()
+            else:
+                # Print the error code
+                logger.error("Article download state:", news_article.download_state)
+                # Return an exception to collect in asyncio.gather
+                raise Exception(f"Error downloading article from {article}")
+
+            # Add the article's body, author, and read time to the dictionary
+            article["body"] = news_article.text
+            article["author"] = (
+                author.strip()
+                if author is not None and news_article.authors[0] != author.strip()
+                else news_article.authors[0].strip()
+            )
+
+            # Check if the author is all caps, convert to title case
+            if article["author"].isupper():
+                article["author"] = article["author"].title()
+
+            article["read_time"] = str(readtime.of_text(news_article.text))
+
 
 class NewsScraper:
-    async def __init__(self, strategy: ScraperStrategy):
+    def __init__(self, strategy: ScraperStrategy):
         self.strategy = strategy
 
     async def scrape_all(self) -> list:
-        try:
-            return self.strategy.scrape_all()
-        except Exception as e:
-            print(f"Error scraping {self.strategy._cname()}: {e}")
-            return []
+        return await self.strategy.scrape_all()
 
     async def scrape_category(self, category: Category) -> list:
-        try:
-            return self.strategy.scrape_category(category)
-        except Exception as e:
-            print(f"Error scraping {self.strategy._cname()}: {e}")
-            return []
+        return await self.strategy.scrape_category(category)
 
     async def scrape_url(self, url: str) -> dict:
-        try:
-            return self.strategy.scrape_url(url)
-        except Exception as e:
-            print(f"Error scraping {self.strategy._cname()}: {e}")
-            return []
+        return await self.strategy.scrape_article(url)
 
 
 # Define a mapping between Provider and ScraperStrategy
@@ -189,11 +244,3 @@ provider_strategy_mapping = {
 
 async def get_scraper_strategy(provider: Provider) -> ScraperStrategy:
     return provider_strategy_mapping.get(provider)
-
-
-# Example usage:
-gma_scraper = GMANewsScraper()
-
-news_scraper_gma = NewsScraper(gma_scraper)
-
-news_scraper_gma.scrape_category(Category.Technology)
