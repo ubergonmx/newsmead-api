@@ -2,10 +2,10 @@ import sqlite3
 import os
 import logging
 
-
 # Logging
 logger = logging.getLogger(__name__)
 
+# [ ] TODO: Add to env
 # Configuration
 db_name = "newsmead.sqlite"
 db_tbl_articles = "articles"
@@ -16,6 +16,10 @@ db_insert_query = f"""
     """
 
 
+# [ ] TODO: Add try-except blocks to all functions
+
+
+# [ ] TODO: Properly implement get_db() function and close connection after use
 # Get DB helper funciton
 def get_db():
     return sqlite3.connect(db_name)
@@ -109,17 +113,25 @@ def insert_data(conn, data, insert_query=db_insert_query):
 
 def insert_articles(conn, articles):
     conn = get_db() if conn is None else conn
-    data = []
+    new_articles = []
+    existing_urls = set(conn.execute("SELECT url FROM articles").fetchall())
+    existing_count = 0
     for article in articles:
         # Check if article is dict or not None
         if not isinstance(article, dict) or article is None:
-            logger.warning(f"Article is not a dict or is None: {article}")
+            logger.warning(f"Article is not a dict or is None")
+            continue
+
+        # Check if article already exists in the database
+        if article["url"] in existing_urls:
+            logger.info(f"Article already exists: {article['title']}")
+            existing_count += 1
             continue
 
         logger.info(f"Inserting article: {article['title']}")
         # Convert the article to a tuple and add it to the data list
         # (date, category, source, title, author, url, body, image_url, read_time)
-        data.append(
+        new_articles.append(
             (
                 article["date"],
                 article["category"],
@@ -132,7 +144,8 @@ def insert_articles(conn, articles):
                 article["read_time"],
             )
         )
-    insert_data(conn=conn, data=data)
+    logger.info(f"Inserted {len(new_articles)}/{len(articles)} articles.")
+    insert_data(conn=conn, data=new_articles)
 
 
 # Fix this
