@@ -6,7 +6,8 @@ import logging
 import random
 import string
 import time
-from newscraper import NewsScraper, Provider, get_scraper_strategy
+from newsscraper import NewsScraper, Provider, get_scraper_strategy, GMANewsScraper
+from database_utils import insert_articles, get_articles
 
 
 # Configure startup and shutdown events
@@ -16,13 +17,17 @@ async def lifespan(app: FastAPI):
         # Scraping
         logger.info("Scraping...")
         # Loop each provider and perform scraping
-        for provider in Provider:
-            # Get scraper strategy
-            scraper_strategy = await get_scraper_strategy(provider)
-            # Create news scraper
-            news_scraper = NewsScraper(scraper_strategy)
-            # Scrape all categories
-            await news_scraper.scrape_all()
+        # for provider in Provider:
+        #     # Get scraper strategy
+        #     scraper_strategy = await get_scraper_strategy(provider)
+        #     # Create news scraper
+        #     news_scraper = NewsScraper(scraper_strategy)
+        #     # Scrape all categories
+        #     await news_scraper.scrape_all()
+
+        news_scraper = NewsScraper(GMANewsScraper())
+        articles = await news_scraper.scrape_all()
+        insert_articles(None, articles)
 
         # Setup ML model
         logger.info("Setting up ML model...")
@@ -56,14 +61,6 @@ async def log_requests(request: Request, call_next):
     return response
 
 
-# Get DB helper funciton
-def get_db():
-    conn = sqlite3.connect("newsmead.sqlite")
-    yield conn
-    logger.info("Closing DB connection...")
-    conn.close()
-
-
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
@@ -73,3 +70,13 @@ def read_root():
 def get_proxies():
     proxies = scrape_proxies()
     return {"proxies": proxies}
+
+
+# TODO: Add pagination
+
+
+# Get articles
+@app.get("/articles")
+def get_articles():
+    articles = get_articles(None)
+    return {"total": len(articles), "articles": articles}
