@@ -63,8 +63,6 @@ class ScraperStrategy(ABC):
             # Extract URLs from the RSS feed
             articles = await self.parse_rss(rss_root, mapped_category)
 
-            articles = articles[:5]
-
             # Scrape each URL asynchronously and return the results
             tasks = [self.scrape_article(article) for article in articles]
             results = await asyncio.gather(*tasks)
