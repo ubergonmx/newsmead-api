@@ -63,9 +63,15 @@ class ScraperStrategy(ABC):
             # Extract URLs from the RSS feed
             articles = await self.parse_rss(rss_root, mapped_category)
 
+            articles = articles[:5]
+
             # Scrape each URL asynchronously and return the results
             tasks = [self.scrape_article(article) for article in articles]
-            return await asyncio.gather(*tasks)
+            results = await asyncio.gather(*tasks)
+
+            logger.info(f"{self._cname()} scraped {len(results)} articles")
+            logger.info(f"{self._cname()} scraping for {category} complete")
+            return results
         else:
             logger.error(
                 f"Category mapping not defined for {self._cname()}: {category}"
@@ -216,6 +222,8 @@ class GMANewsScraper(ScraperStrategy):
                 article["author"] = article["author"].title()
 
             article["read_time"] = str(readtime.of_text(news_article.text))
+
+        return article
 
 
 class NewsScraper:
