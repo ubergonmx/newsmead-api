@@ -95,7 +95,7 @@ def drop_table(conn, table_name):
 
 
 def show_table(conn, table_name):
-    conn.execute(f"SELECT * FROM {table_name}").fetchall()
+    return conn.execute(f"SELECT * FROM {table_name}").fetchall()
 
 
 def insert_data(conn, data, insert_query=db_insert_query):
