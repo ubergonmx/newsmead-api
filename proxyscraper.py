@@ -32,11 +32,13 @@ class ProxyScraper:
         self.proxies = self.scrape_proxies()
         self.current_proxy_index = 0
 
+    # [ ] TODO: Add try-except if no proxies are not available
     def get_next_proxy(self):
         proxy = self.proxies[self.current_proxy_index]
         self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
         return {"http://": proxy} if proxy.startswith("http:") else {"https://": proxy}
 
+    # [ ] TODO: Add try-except if website is down or HTML format changes
     def scrape_proxies(self):
         # Proxy provider: SPYS.one
         spys_url = "https://spys.one/free-proxy-list/PH/"

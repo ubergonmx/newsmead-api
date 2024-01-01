@@ -154,9 +154,9 @@ def insert_articles(conn, articles):
                 article["title"],
                 article.get("author", ""),
                 article["url"],
-                article["body"],
+                article.get("body", ""),
                 article["image_url"],
-                article["read_time"],
+                article.get("read_time", ""),
             )
         )
     insert_data(conn=conn, data=new_articles)
