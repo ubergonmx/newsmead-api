@@ -217,7 +217,6 @@ class GMANewsScraper(ScraperStrategy):
             if response.status_code != 200:
                 # Print the error code
                 logger.info(f"Article status code: {response.status_code}")
-                # Return an empty list
                 return (False, article)
 
             # Parse the HTML document with BeautifulSoup to get the author
@@ -242,8 +241,7 @@ class GMANewsScraper(ScraperStrategy):
             else:
                 # Print the error code
                 logger.error("Article download state:", news_article.download_state)
-                # Return an exception to collect in asyncio.gather
-                raise Exception(f"Error downloading article from {article}")
+                return (False, article)
 
             # Add the article's body, author, and read time to the dictionary
             article["body"] = news_article.text
