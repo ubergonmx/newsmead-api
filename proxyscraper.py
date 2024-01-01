@@ -5,6 +5,7 @@ from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import time
 import logging
+import json
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -29,7 +30,6 @@ driver = webdriver.Chrome(options=chrome_options)
 def scrape_proxies():
     # URL to scrape
     spys_url = "https://spys.one/free-proxy-list/PH/"
-    print("Scraping URL:", spys_url)
     driver.get(spys_url)
 
     # Wait for the page to load (adjust the sleep time if needed)
@@ -63,6 +63,7 @@ def scrape_proxies():
     # Close the browser window
     driver.quit()
 
-    # Print the scraped proxies
-    print("Scraped Proxies:", proxies)
+    # Remove "socks" proxies
+    proxies = [proxy for proxy in proxies if "socks" not in proxy]
+    logger.info(f"Scraped {len(proxies)} proxies: {json.dumps(proxies, indent=2)}")
     return proxies
