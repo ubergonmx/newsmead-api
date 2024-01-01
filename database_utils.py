@@ -9,6 +9,23 @@ logger = logging.getLogger(__name__)
 # Configuration
 db_name = "newsmead.sqlite"
 db_tbl_articles = "articles"
+
+# [ ] TODO: Refactor queries
+db_create_article_table_query = f"""
+    CREATE TABLE IF NOT EXISTS {db_tbl_articles}
+    (
+        article_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT,
+        category TEXT,
+        source TEXT,
+        title TEXT,
+        author TEXT,
+        url TEXT UNIQUE,
+        body TEXT,
+        image_url TEXT,
+        read_time TEXT
+    );
+    """
 db_insert_query = f"""
     INSERT INTO {db_tbl_articles}
     (date, category, source, title, author, url, body, image_url, read_time)
@@ -35,6 +52,7 @@ def run_query(conn, query):
     conn.commit()
 
 
+# [ ] TODO: Add optional table_name parameter and refactor
 def get_articles(conn):
     conn = get_db() if conn is None else conn
     articles = conn.execute(f"SELECT * FROM {db_tbl_articles}").fetchall()
@@ -75,22 +93,7 @@ def table_exists(conn, table_name):
 def create_article_table(conn, table_name):
     # Create the table with the following columns
     # article_id, date, category, source, title, author, url, body, image_url, read_time
-    create = f"""
-        CREATE TABLE {table_name}
-        (
-            article_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            date TEXT,
-            category TEXT,
-            source TEXT,
-            title TEXT,
-            author TEXT,
-            url TEXT,
-            body TEXT,
-            image_url TEXT,
-            read_time TEXT
-        );
-        """
-    run_query(conn, create)
+    run_query(conn, db_create_article_table_query)
 
 
 def drop_table(conn, table_name):
@@ -102,6 +105,7 @@ def show_table(conn, table_name):
     return conn.execute(f"SELECT * FROM {table_name}").fetchall()
 
 
+# [ ] TODO: Refactor insert functions and add optional table_name parameter
 def insert_data(conn, data, insert_query=db_insert_query):
     # Create the table if it does not exist
     if not table_exists(conn, db_tbl_articles):
@@ -144,10 +148,12 @@ def insert_articles(conn, articles):
                 article["read_time"],
             )
         )
-    logger.info(f"Inserted {len(new_articles)}/{len(articles)} articles.")
-    insert_data(conn=conn, data=new_articles)
+    logger.info(
+        f"Inserted {len(new_articles)}/{len(articles)} (-{existing_count}) articles."
+    )
+    # insert_data(conn=conn, data=new_articles)
 
 
-# Fix this
+# [ ] TODO: Fix this or remove
 def db_exists(db_name):
     return os.path.exists(db_path())
