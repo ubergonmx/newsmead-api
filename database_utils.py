@@ -159,10 +159,10 @@ def insert_articles(conn, articles):
                 article["read_time"],
             )
         )
+    insert_data(conn=conn, data=new_articles)
     logger.info(
         f"Inserted {len(new_articles)}/{len(articles)} (dup: {existing_count}, inv: {invalid_count}) articles."
     )
-    insert_data(conn=conn, data=new_articles)
 
 
 def delete_duplicates(conn):
