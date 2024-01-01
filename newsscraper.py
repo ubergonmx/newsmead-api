@@ -87,10 +87,12 @@ class ScraperStrategy(ABC):
                     for article in failed
                 ]
                 results = await asyncio.gather(*tasks)
+                for result in results:
+                    success.append(result[1])
 
-            logger.info(f"{self._cname()} scraped {len(results)} articles")
+            logger.info(f"{self._cname()} scraped {len(success)} articles")
             logger.info(f"{self._cname()} scraping for {category} complete")
-            return results
+            return success
         else:
             logger.error(
                 f"Category mapping not defined for {self._cname()}: {category}"
