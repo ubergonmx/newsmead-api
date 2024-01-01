@@ -85,6 +85,33 @@ def get_articles(conn):
     return cleaned_articles
 
 
+def get_articles_by_provider(conn, provider, empty_body=False):
+    conn = get_db() if conn is None else conn
+    articles = conn.execute(
+        f"SELECT * FROM {db_tbl_articles} WHERE source = '{provider}' AND body {'IS' if empty_body else 'IS NOT'} ''"
+    ).fetchall()
+    cleaned_articles = []
+
+    # date, category, source, title, author, url, body, image_url, read_time
+
+    for article in articles:
+        cleaned_articles.append(
+            {
+                "date": article[1],
+                "category": article[2],
+                "source": article[3],
+                "title": article[4],
+                "author": article[5],
+                "url": article[6],
+                "body": article[7],
+                "imageUrl": article[8],
+                "readTime": article[9],
+            }
+        )
+
+    return cleaned_articles
+
+
 def table_exists(conn, table_name):
     return (
         conn.cursor()
@@ -127,7 +154,7 @@ def insert_articles(conn, articles):
     conn = get_db() if conn is None else conn
     new_articles = []
     existing_urls = set(
-        url[0] for url in conn.execute("SELECT url FROM articles").fetchall()
+        url[0] for url in conn.execute(f"SELECT url FROM {db_tbl_articles}").fetchall()
     )
     invalid_count = 0
     existing_count = 0
