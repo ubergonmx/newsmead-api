@@ -26,6 +26,7 @@ conn = sqlite3.connect(db_path)
 
 table_name = input("Enter table name: ")
 
+# [ ] TODO: Refactor table creation - involve database_utils.py
 if not (table_exists(conn, table_name)):
     if input(f'Table "{table_name}" does not exist. Create? (y/n): ') == "y":
         create_article_table(conn, table_name)
