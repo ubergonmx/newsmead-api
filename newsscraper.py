@@ -267,7 +267,7 @@ class NewsScraper:
         self.strategy = strategy
 
     async def scrape_all(self, proxy_scraper) -> list:
-        return await self.strategy.scrape_all()
+        return await self.strategy.scrape_all(proxy_scraper=proxy_scraper)
 
     async def scrape_category(self, category: Category) -> list:
         return await self.strategy.scrape_category(category)
