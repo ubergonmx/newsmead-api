@@ -31,6 +31,13 @@ db_insert_query = f"""
     (date, category, source, title, author, url, body, image_url, read_time)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
+db_delete_duplicates_query = f"""
+    DELETE FROM {db_tbl_articles}
+    WHERE rowid NOT IN (
+        SELECT MIN(rowid)
+        FROM {db_tbl_articles}
+        GROUP BY url
+    )"""
 
 
 # [ ] TODO: Add try-except blocks to all functions
@@ -152,6 +159,11 @@ def insert_articles(conn, articles):
         f"Inserted {len(new_articles)}/{len(articles)} (-{existing_count}) articles."
     )
     # insert_data(conn=conn, data=new_articles)
+
+
+def delete_duplicates(conn):
+    conn = get_db() if conn is None else conn
+    run_query(conn, db_delete_duplicates_query)
 
 
 # [ ] TODO: Fix this or remove
