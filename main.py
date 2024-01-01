@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Request
-from proxyscraper import scrape_proxies
+from proxyscraper import ProxyScraper, scrape_proxies
 import sqlite3
 import logging
 import random
@@ -31,9 +31,9 @@ async def lifespan(app: FastAPI):
         #     news_scraper = NewsScraper(scraper_strategy)
         #     # Scrape all categories
         #     await news_scraper.scrape_all()
-
+        proxy_scraper = ProxyScraper()
         news_scraper = NewsScraper(GMANewsScraper())
-        articles = await news_scraper.scrape_all()
+        articles = await news_scraper.scrape_all(proxy_scraper)
         insert_articles(None, articles)
 
         # Setup ML model
