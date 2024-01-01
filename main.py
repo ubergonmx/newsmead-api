@@ -1,18 +1,21 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Request
 from proxyscraper import ProxyScraper
+from newsscraper import NewsScraper, Provider, get_scraper_strategy, GMANewsScraper
+from database_utils import insert_articles, get_articles
 import sqlite3
 import logging
 import random
 import string
 import time
-from newsscraper import NewsScraper, Provider, get_scraper_strategy, GMANewsScraper
-from database_utils import insert_articles, get_articles
+import os
 
 # [ ] TODO: Add pydantic for validation
 
 
 # Configure logging
+if not os.path.exists("logs"):
+    os.makedirs("logs")
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 
@@ -76,10 +79,11 @@ def get_proxies():
 
 
 # [ ] TODO: Add pagination
-
-
 # Get articles
 @app.get("/articles")
 def get_articles():
     articles = get_articles(None)
     return {"total": len(articles), "articles": articles}
+
+
+# [ ] TODO: Add status endpoint - return datetime.time (get current time of server)
