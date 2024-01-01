@@ -125,12 +125,16 @@ def insert_data(conn, data, insert_query=db_insert_query):
 def insert_articles(conn, articles):
     conn = get_db() if conn is None else conn
     new_articles = []
-    existing_urls = set(conn.execute("SELECT url FROM articles").fetchall())
+    existing_urls = set(
+        url[0] for url in conn.execute("SELECT url FROM articles").fetchall()
+    )
+    invalid_count = 0
     existing_count = 0
     for article in articles:
         # Check if article is dict or not None
         if not isinstance(article, dict) or article is None:
             logger.warning(f"Article is not a dict or is None")
+            invalid_count += 1
             continue
 
         # Check if article already exists in the database
@@ -156,9 +160,9 @@ def insert_articles(conn, articles):
             )
         )
     logger.info(
-        f"Inserted {len(new_articles)}/{len(articles)} (-{existing_count}) articles."
+        f"Inserted {len(new_articles)}/{len(articles)} (dup: {existing_count}, inv: {invalid_count}) articles."
     )
-    # insert_data(conn=conn, data=new_articles)
+    insert_data(conn=conn, data=new_articles)
 
 
 def delete_duplicates(conn):
