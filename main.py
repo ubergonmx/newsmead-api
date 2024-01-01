@@ -71,7 +71,7 @@ def read_root():
 
 @app.get("/proxies")
 def get_proxies():
-    proxies = scrape_proxies()
+    proxies = ProxyScraper().proxies
     return {"proxies": proxies}
 
 
