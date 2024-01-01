@@ -155,7 +155,7 @@ class ScraperStrategy(ABC):
         # Return the date in the format Nov 01, 2020
         return date.strftime("%b %d, %Y")
 
-    def get_reversed_mapping(self, mapping):
+    def _get_reversed_mapping(self, mapping):
         return {v: k for k, v in mapping.items()}
 
 
@@ -178,7 +178,7 @@ class GMANewsScraper(ScraperStrategy):
 
     async def parse_rss(self, root, category) -> list:
         articles = []
-        reversed_mapping = self.get_reversed_mapping(self._category_mapping)
+        reversed_mapping = self._get_reversed_mapping(self._category_mapping)
         # Iterate through each 'item' in the RSS feed
         for item in root.findall(".//item"):
             title = item.find("title").text
