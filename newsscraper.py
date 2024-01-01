@@ -97,7 +97,7 @@ class ScraperStrategy(ABC):
             )
 
     @abstractmethod
-    async def scrape_article(self, article: dict, proxy: str = None) -> tuple:
+    async def scrape_article(self, article: dict, proxy: dict = None) -> tuple:
         pass
 
     async def scrape_article_with_retries(
@@ -204,8 +204,8 @@ class GMANewsScraper(ScraperStrategy):
 
         return articles
 
-    async def scrape_article(self, article: dict, proxy: str = None) -> tuple:
-        async with httpx.AsyncClient(proxies={"http": proxy, "https": proxy}) as client:
+    async def scrape_article(self, article: dict, proxy: dict = None) -> tuple:
+        async with httpx.AsyncClient(proxies=proxy) as client:
             try:
                 # Asynchronously download the article
                 response = await client.get(article["url"])
