@@ -197,6 +197,17 @@ def delete_duplicates(conn):
     run_query(conn, db_delete_duplicates_query)
 
 
+def delete_empty_body_by_provider(conn, provider):
+    conn = get_db() if conn is None else conn
+    run_query(
+        conn,
+        f"""
+        DELETE FROM {db_tbl_articles}
+        WHERE body = '' and source = '{provider}'
+    """,
+    )
+
+
 # [ ] TODO: Fix this or remove
 def db_exists(db_name):
     return os.path.exists(db_path())
