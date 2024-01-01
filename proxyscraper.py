@@ -35,7 +35,7 @@ class ProxyScraper:
     def get_next_proxy(self):
         proxy = self.proxies[self.current_proxy_index]
         self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
-        return {"http": proxy} if proxy.startswith("http:") else {"https": proxy}        
+        return {"http://": proxy} if proxy.startswith("http:") else {"https://": proxy}
 
     def scrape_proxies(self):
         # Proxy provider: SPYS.one
