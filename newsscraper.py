@@ -9,6 +9,8 @@ import xml.etree.ElementTree as ET
 import readtime
 import logging
 
+# [ ] TODO: Import typing module to be precise with types (especially return types)
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -43,14 +45,14 @@ class ScraperStrategy(ABC):
     def _rss_url(self) -> str:
         pass
 
-    async def scrape_all(self):
+    async def scrape_all(self, proxy_scraper=None) -> list:
         results = []
         for category in self._category_mapping:
-            category_results = await self.scrape_category(category)
+            category_results = await self.scrape_category(category, proxy_scraper)
             results.extend(category_results)
         return results
 
-    async def scrape_category(self, category: Category) -> list:
+    async def scrape_category(self, category: Category, proxy_scraper=None) -> list:
         if category in self._category_mapping:
             mapped_category = self._category_mapping[category]
             logger.info(f"{self._cname()} scraping for {category} ({mapped_category})")
@@ -68,6 +70,24 @@ class ScraperStrategy(ABC):
             tasks = [self.scrape_article(article) for article in articles]
             results = await asyncio.gather(*tasks)
 
+            success = []
+            failed = []
+            for result in results:
+                if result[0]:
+                    success.append(result[1])
+                else:
+                    failed.append(result[1])
+
+            if len(failed) > 0:
+                logger.info(
+                    f"{self._cname()} failed to scrape {len(failed)} articles. Retrying..."
+                )
+                tasks = [
+                    self.scrape_article_with_retries(article, proxy_scraper)
+                    for article in failed
+                ]
+                results = await asyncio.gather(*tasks)
+
             logger.info(f"{self._cname()} scraped {len(results)} articles")
             logger.info(f"{self._cname()} scraping for {category} complete")
             return results
@@ -77,8 +97,25 @@ class ScraperStrategy(ABC):
             )
 
     @abstractmethod
-    async def scrape_article(self, article: dict) -> dict:
+    async def scrape_article(self, article: dict, proxy: str = None) -> tuple:
         pass
+
+    async def scrape_article_with_retries(
+        self,
+        article,
+        proxy_scraper,
+        max_retries=5,
+    ) -> tuple:
+        for i in range(max_retries):
+            proxy = proxy_scraper.get_next_proxy()
+            result = await self.scrape_article(article, proxy)
+            if result[0]:
+                return result
+            else:
+                if i == max_retries - 1:  # If this was the last retry
+                    return (False, article)
+                else:
+                    continue  # Try again with the next proxy
 
     @abstractmethod
     async def parse_rss(self, root, category) -> list:
@@ -167,21 +204,21 @@ class GMANewsScraper(ScraperStrategy):
 
         return articles
 
-    async def scrape_article(self, article: dict) -> dict:
-        async with httpx.AsyncClient() as client:
+    async def scrape_article(self, article: dict, proxy: str = None) -> tuple:
+        async with httpx.AsyncClient(proxies={"http": proxy, "https": proxy}) as client:
             try:
                 # Asynchronously download the article
                 response = await client.get(article["url"])
             except Exception as e:
                 logger.error(f"Error downloading article: {str(e)}")
-                return []
+                return (False, article)
 
             # Check if the article was successfully downloaded
             if response.status_code != 200:
                 # Print the error code
                 logger.info(f"Article status code: {response.status_code}")
                 # Return an empty list
-                return []
+                return (False, article)
 
             # Parse the HTML document with BeautifulSoup to get the author
             soup = BeautifulSoup(response.content, "html.parser")
@@ -222,7 +259,7 @@ class GMANewsScraper(ScraperStrategy):
 
             article["read_time"] = str(readtime.of_text(news_article.text))
 
-        return article
+        return (True, article)
 
 
 class NewsScraper:
@@ -235,8 +272,8 @@ class NewsScraper:
     async def scrape_category(self, category: Category) -> list:
         return await self.strategy.scrape_category(category)
 
-    async def scrape_url(self, url: str) -> dict:
-        return await self.strategy.scrape_article(url)
+    # async def scrape_url(self, url: str) -> dict:
+    #     return await self.strategy.scrape_article(url)
 
 
 # Define a mapping between Provider and ScraperStrategy
