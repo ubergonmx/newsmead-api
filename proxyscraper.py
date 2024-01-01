@@ -27,43 +27,53 @@ chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
 driver = webdriver.Chrome(options=chrome_options)
 
 
-def scrape_proxies():
-    # URL to scrape
-    spys_url = "https://spys.one/free-proxy-list/PH/"
-    driver.get(spys_url)
+class ProxyScraper:
+    def __init__(self):
+        self.proxies = self.scrape_proxies()
+        self.current_proxy_index = 0
 
-    # Wait for the page to load (adjust the sleep time if needed)
-    time.sleep(5)
+    def get_next_proxy(self):
+        proxy = self.proxies[self.current_proxy_index]
+        self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
+        return proxy
 
-    # Extract the HTML content after the page has loaded
-    html_content = driver.page_source
+    def scrape_proxies(self):
+        # Proxy provider: SPYS.one
+        spys_url = "https://spys.one/free-proxy-list/PH/"
+        driver.get(spys_url)
 
-    # Parse the HTML with BeautifulSoup
-    soup = BeautifulSoup(html_content, "html.parser")
+        # Wait for the page to load (adjust the sleep time if needed)
+        time.sleep(5)
 
-    # Extract proxies from the page as before
-    proxies = []
+        # Extract the HTML content after the page has loaded
+        html_content = driver.page_source
 
-    # Find the 3rd table
-    proxy_table = soup.find_all("table")[2]
+        # Parse the HTML with BeautifulSoup
+        soup = BeautifulSoup(html_content, "html.parser")
 
-    # Get tbody in table
-    tbody = proxy_table.find("tbody")
+        # Extract proxies from the page as before
+        proxies = []
 
-    # Get all rows with onmouseover property
-    rows = tbody.find_all("tr", {"onmouseover": "this.style.background='#002424'"})
+        # Find the 3rd table
+        proxy_table = soup.find_all("table")[2]
 
-    for row in rows:
-        columns = row.find_all("td")
-        ip = columns[0].text.strip()
-        proxy_type = columns[1].text.strip().split(" ")[0].lower()
-        proxy = f"{proxy_type}://{ip}"
-        proxies.append(proxy)
+        # Get tbody in table
+        tbody = proxy_table.find("tbody")
 
-    # Close the browser window
-    driver.quit()
+        # Get all rows with onmouseover property
+        rows = tbody.find_all("tr", {"onmouseover": "this.style.background='#002424'"})
 
-    # Remove "socks" proxies
-    proxies = [proxy for proxy in proxies if "socks" not in proxy]
-    logger.info(f"Scraped {len(proxies)} proxies: {json.dumps(proxies, indent=2)}")
-    return proxies
+        for row in rows:
+            columns = row.find_all("td")
+            ip = columns[0].text.strip()
+            proxy_type = columns[1].text.strip().split(" ")[0].lower()
+            proxy = f"{proxy_type}://{ip}"
+            proxies.append(proxy)
+
+        # Close the browser window
+        driver.quit()
+
+        # Remove "socks" proxies
+        proxies = [proxy for proxy in proxies if "socks" not in proxy]
+        logger.info(f"Scraped {len(proxies)} proxies: {json.dumps(proxies, indent=2)}")
+        return proxies
