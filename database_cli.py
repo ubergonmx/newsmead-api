@@ -41,7 +41,7 @@ if not (table_exists(conn, table_name)):
 
 while True:
     ans = input(
-        "\n\nWhat do you want to do?\n 1) Show table \n 2) Reset table (DISABLED) \n 3) Custom SQL command \n q) Exit \n\n >"
+        "\n\nWhat do you want to do?\n 1) Show table \n 2) Reset table (DISABLED) \n 3) Enter SQL query \n q) Exit \n\n >"
     )
 
     if ans == "1":
@@ -51,6 +51,7 @@ while True:
             continue
         print(json.dumps(table, indent=2))
     elif ans == "2":
+        # [ ] TODO: Add backup functionality before dropping table. Discuss with team.
         # if input("This process is NOT reversible. Are you sure (y/n): ") == "y":
         #     drop_table(conn, table_name)
         #     create_article_table(conn, table_name)
@@ -60,7 +61,7 @@ while True:
         exit()
 
     elif ans == "3":
-        sql = input("Enter SQL command: ")
+        sql = input("Enter SQL query: ")
         try:
             run_query(conn, sql)
         except Exception as e:
