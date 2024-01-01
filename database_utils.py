@@ -122,6 +122,7 @@ def insert_data(conn, data, insert_query=db_insert_query):
     conn.commit()
 
 
+# [ ] TODO: Discuss with team if bulk insert or insert one by one
 def insert_articles(conn, articles):
     conn = get_db() if conn is None else conn
     new_articles = []
@@ -143,7 +144,6 @@ def insert_articles(conn, articles):
             existing_count += 1
             continue
 
-        logger.info(f"Inserting article: {article['title']}")
         # Convert the article to a tuple and add it to the data list
         # (date, category, source, title, author, url, body, image_url, read_time)
         new_articles.append(
