@@ -2,7 +2,7 @@ import sqlite3
 import os
 import logging
 
-# Logging
+# Configure logging
 logger = logging.getLogger(__name__)
 
 # [ ] TODO: Add to env

@@ -9,8 +9,8 @@ import xml.etree.ElementTree as ET
 import readtime
 import logging
 
+# Configure logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
 
 
 class Category(Enum):

@@ -4,6 +4,10 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 import time
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 # Set up the Chrome driver
 chrome_options = Options()

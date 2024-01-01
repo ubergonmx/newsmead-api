@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import json
+import logging
 from database_utils import (
     run_query,
     table_exists,
@@ -9,6 +10,10 @@ from database_utils import (
     create_article_table,
     db_name,
 )
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
 
 # db_name = input("Enter database name: ") + ".sqlite"
 # if not db_exists(db_name):

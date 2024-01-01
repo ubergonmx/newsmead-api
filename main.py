@@ -12,6 +12,11 @@ from database_utils import insert_articles, get_articles
 # [ ] TODO: Add pydantic for validation
 
 
+# Configure logging
+logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
+logger = logging.getLogger(__name__)
+
+
 # Configure startup and shutdown events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -40,10 +45,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-
-# Configure logging
-logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
 
 
 @app.middleware("http")
