@@ -234,7 +234,7 @@ class GMANewsScraper(ScraperStrategy):
 
             # Parse the article using newspaper3k
             news_article = Article(str(response.url))
-            news_article.download()
+            news_article.download(input_html=str(response.content))
 
             # Check if the article was successfully downloaded
             if news_article.download_state == 2:
