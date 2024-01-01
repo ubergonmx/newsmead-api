@@ -14,13 +14,13 @@ logger.setLevel(logging.DEBUG)
 
 
 class Category(Enum):
-    News = "News"
-    Opinion = "Opinion"
-    Sports = "Sports"
-    Technology = "Technology"
-    Lifestyle = "Lifestyle"
-    Business = "Business"
-    Entertainment = "Entertainment"
+    News = "news"
+    Opinion = "opinion"
+    Sports = "sports"
+    Technology = "technology"
+    Lifestyle = "lifestyle"
+    Business = "business"
+    Entertainment = "entertainment"
 
 
 class Provider(Enum):
@@ -31,6 +31,7 @@ class Provider(Enum):
     INQUIRER = "inquirer"
 
 
+# [ ] TODO: Add timer to benchmark performance
 class ScraperStrategy(ABC):
     @property
     @abstractmethod
