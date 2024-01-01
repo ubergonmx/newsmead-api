@@ -41,7 +41,7 @@ if not (table_exists(conn, table_name)):
 
 while True:
     ans = input(
-        "\n\nWhat do you want to do?\n 1) Show table \n 2) Reset table \n 3) Custom SQL command \n q) Exit \n\n >"
+        "\n\nWhat do you want to do?\n 1) Show table \n 2) Reset table (DISABLED) \n 3) Custom SQL command \n q) Exit \n\n >"
     )
 
     if ans == "1":
@@ -51,11 +51,11 @@ while True:
             continue
         print(json.dumps(table, indent=2))
     elif ans == "2":
-        if input("This process is NOT reversible. Are you sure (y/n): ") == "y":
-            drop_table(conn, table_name)
-            create_article_table(conn, table_name)
+        # if input("This process is NOT reversible. Are you sure (y/n): ") == "y":
+        #     drop_table(conn, table_name)
+        #     create_article_table(conn, table_name)
 
-        print(f'Reset "{table_name}".')
+        # print(f'Reset "{table_name}".')
         conn.close()
         exit()
 
