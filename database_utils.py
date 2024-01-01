@@ -27,7 +27,7 @@ db_create_article_table_query = f"""
     );
     """
 db_insert_query = f"""
-    INSERT INTO {db_tbl_articles}
+    INSERT OR IGNORE INTO {db_tbl_articles}
     (date, category, source, title, author, url, body, image_url, read_time)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     """
