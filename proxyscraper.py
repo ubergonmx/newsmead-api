@@ -79,3 +79,10 @@ class ProxyScraper:
         proxies = [proxy for proxy in proxies if "socks" not in proxy]
         log.info(f"Scraped {len(proxies)} proxies: {json.dumps(proxies, indent=2)}")
         return proxies
+
+    def refresh_proxies(self):
+        self.proxies = self.scrape_proxies()
+        self.current_proxy_index = 0
+        log.info(
+            f"Refreshed proxies ({len(self.proxies)}): {json.dumps(self.proxies, indent=2)}"
+        )
