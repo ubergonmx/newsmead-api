@@ -210,6 +210,8 @@ class GMANewsScraper(ScraperStrategy):
         async with httpx.AsyncClient(proxies=proxy) as client:
             try:
                 # Asynchronously download the article
+                if proxy is not None:
+                    logger.info(f"Using proxy: {proxy}")
                 response = await client.get(article["url"])
             except Exception as e:
                 logger.error(f"Error downloading article: {article['url']}")
