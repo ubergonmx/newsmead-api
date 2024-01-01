@@ -109,7 +109,7 @@ class ScraperStrategy(ABC):
         self,
         article,
         proxy_scraper,
-        max_retries=5,
+        max_retries=10,
     ) -> tuple:
         for i in range(max_retries):
             proxy = proxy_scraper.get_next_proxy()
