@@ -212,7 +212,7 @@ class GMANewsScraper(ScraperStrategy):
                 # Asynchronously download the article
                 response = await client.get(article["url"])
             except Exception as e:
-                logger.error(f"Error downloading article: {str(e)}")
+                logger.error(f"Error downloading article: {article['url']}")
                 return (False, article)
 
             # Check if the article was successfully downloaded
