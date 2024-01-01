@@ -152,7 +152,7 @@ def insert_articles(conn, articles):
                 article["category"],
                 article["source"],
                 article["title"],
-                article["author"],
+                article.get("author", ""),
                 article["url"],
                 article["body"],
                 article["image_url"],
