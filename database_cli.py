@@ -12,7 +12,7 @@ from database_utils import (
 )
 
 # Configure logging
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 # db_name = input("Enter database name: ") + ".sqlite"

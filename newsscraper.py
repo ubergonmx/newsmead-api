@@ -12,7 +12,7 @@ import logging
 # [ ] TODO: Import typing module to be precise with types (especially return types)
 
 # Configure logging
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class Category(Enum):
@@ -55,7 +55,7 @@ class ScraperStrategy(ABC):
     async def scrape_category(self, category: Category, proxy_scraper=None) -> list:
         if category in self._category_mapping:
             mapped_category = self._category_mapping[category]
-            logger.info(f"{self._cname()} scraping for {category} ({mapped_category})")
+            log.info(f"{self._cname()} scraping for {category} ({mapped_category})")
 
             # Replace the [category] placeholder with the mapped category
             rss_url = self._rss_url.replace("[category]", mapped_category)
@@ -79,7 +79,7 @@ class ScraperStrategy(ABC):
                     failed.append(result[1])
 
             if len(failed) > 0:
-                logger.info(
+                log.info(
                     f"{self._cname()} failed to scrape {len(failed)} articles. Retrying..."
                 )
                 tasks = [
@@ -90,13 +90,11 @@ class ScraperStrategy(ABC):
                 for result in results:
                     success.append(result[1])
 
-            logger.info(f"{self._cname()} scraped {len(success)} articles")
-            logger.info(f"{self._cname()} scraping for {category} complete")
+            log.info(f"{self._cname()} scraped {len(success)} articles")
+            log.info(f"{self._cname()} scraping for {category} complete")
             return success
         else:
-            logger.error(
-                f"Category mapping not defined for {self._cname()}: {category}"
-            )
+            log.error(f"Category mapping not defined for {self._cname()}: {category}")
 
     @abstractmethod
     async def scrape_article(self, article: dict, proxy: dict = None) -> tuple:
@@ -134,7 +132,7 @@ class ScraperStrategy(ABC):
                 root = ET.fromstring(rss_response.content)
             else:
                 # Print the error code
-                logger.error(f"RSS status code: {rss_response.status_code}")
+                log.error(f"RSS status code: {rss_response.status_code}")
                 # Return an empty list
                 return []
 
@@ -211,16 +209,16 @@ class GMANewsScraper(ScraperStrategy):
             try:
                 # Asynchronously download the article
                 if proxy is not None:
-                    logger.info(f"Using proxy: {proxy}")
+                    log.info(f"Using proxy: {proxy}")
                 response = await client.get(article["url"])
             except Exception as e:
-                logger.error(f"Error downloading article: {article['url']}")
+                log.error(f"Error downloading article: {article['url']}")
                 return (False, article)
 
             # Check if the article was successfully downloaded
             if response.status_code != 200:
                 # Print the error code
-                logger.info(f"Article status code: {response.status_code}")
+                log.info(f"Article status code: {response.status_code}")
                 return (False, article)
 
             # Parse the HTML document with BeautifulSoup to get the author
@@ -244,7 +242,7 @@ class GMANewsScraper(ScraperStrategy):
                 news_article.parse()
             else:
                 # Print the error code
-                logger.error("Article download state:", news_article.download_state)
+                log.error("Article download state:", news_article.download_state)
                 return (False, article)
 
             # Add the article's body, author, and read time to the dictionary

@@ -3,7 +3,7 @@ import os
 import logging
 
 # Configure logging
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 # [ ] TODO: Add to env
 # Configuration
@@ -134,13 +134,13 @@ def insert_articles(conn, articles):
     for article in articles:
         # Check if article is dict or not None
         if not isinstance(article, dict) or article is None:
-            logger.warning(f"Article is not a dict or is None")
+            log.warning(f"Article is not a dict or is None")
             invalid_count += 1
             continue
 
         # Check if article already exists in the database
         if article["url"] in existing_urls:
-            logger.info(f"Article already exists: {article['title']}")
+            log.info(f"Article already exists: {article['title']}")
             existing_count += 1
             continue
 
@@ -160,7 +160,7 @@ def insert_articles(conn, articles):
             )
         )
     insert_data(conn=conn, data=new_articles)
-    logger.info(
+    log.info(
         f"Inserted {len(new_articles)}/{len(articles)} (dup: {existing_count}, inv: {invalid_count}) articles."
     )
 

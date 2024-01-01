@@ -8,7 +8,7 @@ import logging
 import json
 
 # Configure logging
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 # Set up the Chrome driver
 chrome_options = Options()
@@ -77,5 +77,5 @@ class ProxyScraper:
 
         # Remove "socks" proxies
         proxies = [proxy for proxy in proxies if "socks" not in proxy]
-        logger.info(f"Scraped {len(proxies)} proxies: {json.dumps(proxies, indent=2)}")
+        log.info(f"Scraped {len(proxies)} proxies: {json.dumps(proxies, indent=2)}")
         return proxies

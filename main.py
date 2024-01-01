@@ -14,7 +14,7 @@ from database_utils import insert_articles, get_articles
 
 # Configure logging
 logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 # Configure startup and shutdown events
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     try:
         # Scraping
-        logger.info("Scraping...")
+        log.info("Scraping...")
         # Loop each provider and perform scraping
         # for provider in Provider:
         #     # Get scraper strategy
@@ -37,11 +37,11 @@ async def lifespan(app: FastAPI):
         insert_articles(None, articles)
 
         # Setup ML model
-        logger.info("Setting up ML model...")
+        log.info("Setting up ML model...")
         yield
     finally:
         # Teardown ML model
-        logger.info("Tearing down ML model...")
+        log.info("Tearing down ML model...")
 
 
 app = FastAPI(lifespan=lifespan)
@@ -50,14 +50,14 @@ app = FastAPI(lifespan=lifespan)
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     idem = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    logger.info(f"rid={idem} start request path={request.url.path}")
+    log.info(f"rid={idem} start request path={request.url.path}")
     start_time = time.time()
 
     response = await call_next(request)
 
     process_time = (time.time() - start_time) * 1000
     formatted_process_time = "{0:.2f}".format(process_time)
-    logger.info(
+    log.info(
         f"rid={idem} completed_in={formatted_process_time}ms status_code={response.status_code}"
     )
 
