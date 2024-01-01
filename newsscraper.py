@@ -33,6 +33,7 @@ class Provider(Enum):
     INQUIRER = "inquirer"
 
 
+# [ ] TODO: Remove unnecessary comments
 # [ ] TODO: Add timer to benchmark performance
 class ScraperStrategy(ABC):
     @property
@@ -66,35 +67,39 @@ class ScraperStrategy(ABC):
             # Extract URLs from the RSS feed
             articles = await self.parse_rss(rss_root, mapped_category)
 
-            # Scrape each URL asynchronously and return the results
-            tasks = [self.scrape_article(article) for article in articles]
-            results = await asyncio.gather(*tasks)
+            scraped_articles = self.scrape_articles(articles, proxy_scraper)
 
-            success = []
-            failed = []
-            for result in results:
-                if result[0]:
-                    success.append(result[1])
-                else:
-                    failed.append(result[1])
-
-            if len(failed) > 0:
-                log.info(
-                    f"{self._cname()} failed to scrape {len(failed)} articles. Retrying..."
-                )
-                tasks = [
-                    self.scrape_article_with_retries(article, proxy_scraper)
-                    for article in failed
-                ]
-                results = await asyncio.gather(*tasks)
-                for result in results:
-                    success.append(result[1])
-
-            log.info(f"{self._cname()} scraped {len(success)} articles")
             log.info(f"{self._cname()} scraping for {category} complete")
-            return success
+            return scraped_articles
         else:
             log.error(f"Category mapping not defined for {self._cname()}: {category}")
+
+    async def scrape_articles(self, articles: list, proxy_scraper=None) -> list:
+        tasks = [self.scrape_article(article) for article in articles]
+        results = await asyncio.gather(*tasks)
+
+        success = []
+        failed = []
+        for result in results:
+            if result[0]:
+                success.append(result[1])
+            else:
+                failed.append(result[1])
+
+        if len(failed) > 0:
+            log.info(
+                f"{self._cname()} failed to scrape {len(failed)} articles. Retrying..."
+            )
+            tasks = [
+                self.scrape_article_with_retries(article, proxy_scraper)
+                for article in failed
+            ]
+            results = await asyncio.gather(*tasks)
+            for result in results:
+                success.append(result[1])
+
+        log.info(f"{self._cname()} scraped {len(success)} articles")
+        return success
 
     @abstractmethod
     async def scrape_article(self, article: dict, proxy: dict = None) -> tuple:
@@ -242,7 +247,7 @@ class GMANewsScraper(ScraperStrategy):
                 news_article.parse()
             else:
                 # Print the error code
-                log.error("Article download state:", news_article.download_state)
+                log.error("Article download state: ", news_article.download_state)
                 return (False, article)
 
             # Add the article's body, author, and read time to the dictionary
