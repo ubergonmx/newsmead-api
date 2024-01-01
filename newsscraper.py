@@ -277,6 +277,9 @@ class NewsScraper:
     async def scrape_category(self, category: Category) -> list:
         return await self.strategy.scrape_category(category)
 
+    async def scrape_articles(self, articles: list, proxy_scraper=None) -> list:
+        return await self.strategy.scrape_articles(articles, proxy_scraper)
+
     # async def scrape_url(self, url: str) -> dict:
     #     return await self.strategy.scrape_article(url)
 
