@@ -62,9 +62,7 @@ async def scrape_all_providers():
 async def lifespan(app: FastAPI):
     try:
         # Scraping and inserting articles
-        news_scraper = NewsScraper(GMANewsScraper())
-        articles = await news_scraper.scrape_all(app.proxy_scraper)
-        insert_articles(None, articles)
+        await scrape_all_providers()
 
         # Setup ML model
         log.info("Setting up ML model...")
