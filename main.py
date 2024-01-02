@@ -28,6 +28,8 @@ log = logging.getLogger(__name__)
 
 
 async def check_and_fix_empty_articles():
+    log.info("Refreshing proxies...")
+    app.proxy_scraper.refresh_proxies()
     log.info("Checking and fixing empty articles...")
     for provider in Provider:
         # Get scraper strategy
