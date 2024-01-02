@@ -15,6 +15,7 @@ import string
 import time
 import os
 
+# [ ] TODO: Add metadata tags & icon for /docs endpoint
 # [ ] TODO: Add pydantic for validation
 
 # Configure logging
@@ -115,4 +116,4 @@ def get_articles():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app)
+    uvicorn.run(app, reload=True)
