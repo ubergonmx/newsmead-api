@@ -67,7 +67,7 @@ class ScraperStrategy(ABC):
             # Extract URLs from the RSS feed
             articles = await self.parse_rss(rss_root, mapped_category)
 
-            scraped_articles = self.scrape_articles(articles, proxy_scraper)
+            scraped_articles = await self.scrape_articles(articles, proxy_scraper)
 
             log.info(f"{self._cname()} scraping for {category} complete")
             return scraped_articles
