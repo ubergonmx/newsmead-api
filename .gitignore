@@ -161,4 +161,4 @@ cython_debug/
 
 # NewsMead API project
 *.sqlite
-log/
+logs/
