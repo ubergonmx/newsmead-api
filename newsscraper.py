@@ -216,9 +216,10 @@ class GMANewsScraper(ScraperStrategy):
         async with httpx.AsyncClient(proxies=proxy) as client:
             try:
                 response = await client.get(article["url"])
-            except Exception as e:
+                response.raise_for_status()
+            except httpx.HTTPError as e:
                 log.error(
-                    f"HTTPX Error downloading article: {article['url']}{'' if proxy is None else ' (with proxy: ' + list(proxy.values())[0] + ')'}"
+                    f"HTTP Exception for {e.request.url}{'' if proxy is None else ' (proxy: ' + list(proxy.values())[0] + ')'} - {e}"
                 )
                 return (False, article)
 
@@ -226,7 +227,7 @@ class GMANewsScraper(ScraperStrategy):
             if response.status_code != 200:
                 # Print the error code
                 log.error(
-                    f"HTTPX Response status code: {response.status_code}{'' if proxy is None else ' (with proxy)' }"
+                    f"HTTP Response SC: {response.status_code}{'' if proxy is None else ' (with proxy)' }"
                 )
                 return (False, article)
 
