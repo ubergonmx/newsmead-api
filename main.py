@@ -125,8 +125,10 @@ def read_root():
 
 
 @app.get("/proxies")
-def get_proxies():
-    proxies = ProxyScraper().proxies
+def get_proxies(update: bool = False) -> dict[str, list[str]]:
+    if update:
+        app.proxy_scraper.refresh_proxies()
+    proxies = app.proxy_scraper.proxies
     return {"proxies": proxies}
 
 
