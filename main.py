@@ -83,6 +83,8 @@ async def lifespan(app: FastAPI):
     finally:
         # Teardown ML model
         log.info("Tearing down ML model...")
+        # Shutdown scheduler
+        app.scheduler.shutdown()
 
 
 app = FastAPI(lifespan=lifespan)
@@ -132,4 +134,4 @@ def get_articles():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, reload=True)
+    uvicorn.run(app)
