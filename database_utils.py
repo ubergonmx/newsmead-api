@@ -77,7 +77,7 @@ def get_articles(conn):
                 "author": article[5],
                 "url": article[6],
                 "body": article[7],
-                "imageUrl": article[8],
+                "image_url": article[8],
                 "readTime": article[9],
             }
         )
@@ -104,7 +104,7 @@ def get_articles_by_provider(conn, provider, empty_body=False):
                 "author": article[5],
                 "url": article[6],
                 "body": article[7],
-                "imageUrl": article[8],
+                "image_url": article[8],
                 "readTime": article[9],
             }
         )
@@ -170,6 +170,11 @@ def insert_articles(conn, articles):
             log.info(f"Article already exists: {article['title']}")
             existing_count += 1
             continue
+
+        # Log the article to be inserted
+        log_article = article.copy()
+        log_article["body"] = log_article["body"][:10]
+        log.info(f"Inserting article: {log_article}")
 
         # Convert the article to a tuple and add it to the data list
         # (date, category, source, title, author, url, body, image_url, read_time)
