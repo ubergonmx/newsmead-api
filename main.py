@@ -90,7 +90,7 @@ app.scheduler = AsyncIOScheduler(timezone=timezone("Asia/Manila"))
 jobs = [
     (  # every 6th hour and 30th minute of the day (12:30AM, 6:30AM, 12:30PM, 6:30PM)
         check_and_fix_empty_articles,
-        "interval",
+        "cron",
         {"hour": "*/6", "minute": 30, "id": "check_and_fix_empty_articles"},
     ),
     (  # every 6th hour of the day (12AM, 6AM, 12PM, 6PM)
