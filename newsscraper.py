@@ -218,14 +218,16 @@ class GMANewsScraper(ScraperStrategy):
                 response = await client.get(article["url"])
             except Exception as e:
                 log.error(
-                    f"HTTPX Error downloading article: {article['url']} {'' if proxy is None else '(with proxy: ' + list(proxy.values())[0] + ')'}"
+                    f"HTTPX Error downloading article: {article['url']}{'' if proxy is None else ' (with proxy: ' + list(proxy.values())[0] + ')'}"
                 )
                 return (False, article)
 
             # Check if the article was successfully downloaded
             if response.status_code != 200:
                 # Print the error code
-                log.error(f"HTTPX Response status code: {response.status_code}")
+                log.error(
+                    f"HTTPX Response status code: {response.status_code}{'' if proxy is None else ' (with proxy)' }"
+                )
                 return (False, article)
 
             # Parse the HTML document with BeautifulSoup to get the author
