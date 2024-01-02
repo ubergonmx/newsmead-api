@@ -27,10 +27,10 @@ class Category(Enum):
 
 class Provider(Enum):
     GMANews = "gmanews"
-    Philstar = "philstar"
-    News5 = "news5"
-    ManilaBulletin = "manilabulletin"
-    INQUIRER = "inquirer"
+    # Philstar = "philstar"
+    # News5 = "news5"
+    # ManilaBulletin = "manilabulletin"
+    # INQUIRER = "inquirer"
 
 
 # [ ] TODO: Remove unnecessary comments
