@@ -158,6 +158,7 @@ def insert_articles(conn, articles):
     )
     invalid_count = 0
     existing_count = 0
+    empty_count = 0
     for article in articles:
         # Check if article is dict or not None
         if not isinstance(article, dict) or article is None:
@@ -169,6 +170,12 @@ def insert_articles(conn, articles):
         if article["url"] in existing_urls:
             log.info(f"Article already exists: {article['title']}")
             existing_count += 1
+            continue
+
+        # Check if article body is empty
+        if article["body"] == "":
+            log.info(f"Article body is empty: {article['title']}")
+            empty_count += 1
             continue
 
         # Log the article to be inserted
@@ -193,7 +200,7 @@ def insert_articles(conn, articles):
         )
     insert_data(conn=conn, data=new_articles)
     log.info(
-        f"Inserted {len(new_articles)}/{len(articles)} (dup: {existing_count}, inv: {invalid_count}) articles."
+        f"Inserted {len(new_articles)}/{len(articles)} (dup:-{existing_count}, inv:-{invalid_count}, emt:+{empty_count}, ok=+{len(new_articles)-empty_count}) articles."
     )
 
 
