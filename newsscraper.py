@@ -213,21 +213,18 @@ class GMANewsScraper(ScraperStrategy):
         return articles
 
     async def scrape_article(self, article: dict, proxy: dict = None) -> tuple:
-        async with httpx.AsyncClient(proxies=proxy) as client:
+        async with httpx.AsyncClient(follow_redirects=True, proxies=proxy) as client:
             try:
                 response = await client.get(article["url"])
                 response.raise_for_status()
             except httpx.HTTPError as e:
-                log.error(
-                    f"HTTP Exception for {e.request.url}{'' if proxy is None else ' (proxy: ' + list(proxy.values())[0] + ')'} - {e}"
+                exc = "\n".join(
+                    line
+                    for line in str(e).split("\n")
+                    if not line.startswith("For more information check: ")
                 )
-                return (False, article)
-
-            # Check if the article was successfully downloaded
-            if response.status_code != 200:
-                # Print the error code
                 log.error(
-                    f"HTTP Response SC: {response.status_code}{'' if proxy is None else ' (with proxy)' }"
+                    f"HTTP Exception {'' if proxy is None else '(proxy: ' + list(proxy.values())[0] + ')'}: {exc}"
                 )
                 return (False, article)
 
@@ -250,9 +247,11 @@ class GMANewsScraper(ScraperStrategy):
             # Add the article's body, author, and read time to the dictionary
             article["body"] = news_article.text
             article["author"] = (
-                author.strip()
-                if author is not None and news_article.authors[0] != author.strip()
+                author
+                if author is not None and news_article.authors[0] != author
                 else news_article.authors[0].strip()
+                if news_article.authors
+                else "GMA News Online"
             )
 
             # Check if the author is all caps, convert to title case
