@@ -4,7 +4,6 @@ from proxyscraper import ProxyScraper
 from newsscraper import NewsScraper, Provider, get_scraper_strategy, GMANewsScraper
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
-
 from database_utils import (
     insert_articles,
     get_articles,
@@ -68,13 +67,9 @@ async def lifespan(app: FastAPI):
         log.info("Setting up ML model...")
 
         # Add scheduler jobs
-        app.scheduler.add_job(
-            scrape_all_providers,
-            "cron",
-            hour="0-23/6",
-            minute=0,
-            id="scrape_all_providers",
-        )
+        for job in jobs:
+            func, trigger, kwargs = job
+            app.scheduler.add_job(func, trigger, **kwargs)
         app.scheduler.start()
 
         yield
@@ -91,7 +86,22 @@ app = FastAPI(lifespan=lifespan)
 app.proxy_scraper = ProxyScraper()
 app.scheduler = AsyncIOScheduler(timezone=timezone("Asia/Manila"))
 
+# Scheduler jobs
+jobs = [
+    (  # every 6th hour and 30th minute of the day (12:30AM, 6:30AM, 12:30PM, 6:30PM)
+        check_and_fix_empty_articles,
+        "interval",
+        {"hour": "*/6", "minute": 30, "id": "check_and_fix_empty_articles"},
+    ),
+    (  # every 6th hour of the day (12AM, 6AM, 12PM, 6PM)
+        scrape_all_providers,
+        "cron",
+        {"hour": "*/6", "id": "scrape_all_providers"},
+    ),
+]
 
+
+# API endpoints
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     idem = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
