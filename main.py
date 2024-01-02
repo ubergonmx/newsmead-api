@@ -2,16 +2,20 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Request
 from proxyscraper import ProxyScraper
 from newsscraper import NewsScraper, Provider, get_scraper_strategy, GMANewsScraper
-from database_utils import insert_articles, get_articles
+from database_utils import (
+    insert_articles,
+    get_articles,
+    get_articles_by_provider,
+    delete_empty_body_by_provider,
+)
 import sqlite3
-import logging
+import logging.config
 import random
 import string
 import time
 import os
 
 # [ ] TODO: Add pydantic for validation
-
 
 # Configure logging
 if not os.path.exists("logs"):
@@ -20,21 +24,39 @@ logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 
 
+async def fix_empty_articles():
+    for provider in Provider:
+        # Get scraper strategy
+        scraper_strategy = await get_scraper_strategy(provider)
+        # Create news scraper
+        news_scraper = NewsScraper(scraper_strategy)
+        # Scrape all articles with empty body
+        empty_articles = get_articles_by_provider(None, provider.value, True)
+        log.info(f"Empty articles: {empty_articles}")
+        if len(empty_articles) == 0:
+            continue
+        delete_empty_body_by_provider(None, provider.value)
+        articles = await news_scraper.scrape_articles(empty_articles, app.proxy_scraper)
+        insert_articles(None, articles)
+
+
+async def scrape_all_providers():
+    for provider in Provider:
+        # Get scraper strategy
+        scraper_strategy = await get_scraper_strategy(provider)
+        # Create news scraper
+        news_scraper = NewsScraper(scraper_strategy)
+        # Scrape all categories
+        articles = await news_scraper.scrape_all(app.proxy_scraper)
+        insert_articles(None, articles)
+
+
 # Configure startup and shutdown events
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
         # Scraping
-        log.info("Scraping...")
-        # Loop each provider and perform scraping
-        # for provider in Provider:
-        #     # Get scraper strategy
-        #     scraper_strategy = await get_scraper_strategy(provider)
-        #     # Create news scraper
-        #     news_scraper = NewsScraper(scraper_strategy)
-        #     # Scrape all categories
-        #     await news_scraper.scrape_all()
-        proxy_scraper = ProxyScraper()
+        log.info("Scraping all providers...")
         news_scraper = NewsScraper(GMANewsScraper())
         articles = await news_scraper.scrape_all(proxy_scraper)
         insert_articles(None, articles)
@@ -48,6 +70,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+# Shared state
+app.proxy_scraper = ProxyScraper()
 
 
 @app.middleware("http")
