@@ -58,7 +58,7 @@ async def lifespan(app: FastAPI):
         # Scraping
         log.info("Scraping all providers...")
         news_scraper = NewsScraper(GMANewsScraper())
-        articles = await news_scraper.scrape_all(proxy_scraper)
+        articles = await news_scraper.scrape_all(app.proxy_scraper)
         insert_articles(None, articles)
 
         # Setup ML model
@@ -112,3 +112,7 @@ def get_articles():
 
 
 # [ ] TODO: Add status endpoint - return datetime.time (get current time of server)
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(app)
