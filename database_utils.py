@@ -200,6 +200,7 @@ def insert_articles(conn, articles):
 def delete_duplicates(conn):
     conn = get_db() if conn is None else conn
     run_query(conn, db_delete_duplicates_query)
+    log.info(f"Deleted duplicates.")
 
 
 def delete_empty_body_by_provider(conn, provider):
@@ -211,6 +212,7 @@ def delete_empty_body_by_provider(conn, provider):
         WHERE body = '' and source = '{provider}'
     """,
     )
+    log.info(f"Deleted empty body articles from {provider}.")
 
 
 # [ ] TODO: Fix this or remove
