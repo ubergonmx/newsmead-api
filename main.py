@@ -2,6 +2,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Request
 from proxyscraper import ProxyScraper
 from newsscraper import NewsScraper, Provider, get_scraper_strategy, GMANewsScraper
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from pytz import timezone
+
 from database_utils import (
     insert_articles,
     get_articles,
@@ -25,7 +28,8 @@ logging.config.fileConfig("logging.conf", disable_existing_loggers=False)
 log = logging.getLogger(__name__)
 
 
-async def fix_empty_articles():
+async def check_and_fix_empty_articles():
+    log.info("Checking and fixing empty articles...")
     for provider in Provider:
         # Get scraper strategy
         scraper_strategy = await get_scraper_strategy(provider)
@@ -42,6 +46,7 @@ async def fix_empty_articles():
 
 
 async def scrape_all_providers():
+    log.info("Scraping all providers...")
     for provider in Provider:
         # Get scraper strategy
         scraper_strategy = await get_scraper_strategy(provider)
@@ -56,14 +61,24 @@ async def scrape_all_providers():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        # Scraping
-        log.info("Scraping all providers...")
+        # Scraping and inserting articles
         news_scraper = NewsScraper(GMANewsScraper())
         articles = await news_scraper.scrape_all(app.proxy_scraper)
         insert_articles(None, articles)
 
         # Setup ML model
         log.info("Setting up ML model...")
+
+        # Add scheduler jobs
+        app.scheduler.add_job(
+            scrape_all_providers,
+            "cron",
+            hour="0-23/6",
+            minute=0,
+            id="scrape_all_providers",
+        )
+        app.scheduler.start()
+
         yield
     finally:
         # Teardown ML model
@@ -74,6 +89,7 @@ app = FastAPI(lifespan=lifespan)
 
 # Shared state
 app.proxy_scraper = ProxyScraper()
+app.scheduler = AsyncIOScheduler(timezone=timezone("Asia/Manila"))
 
 
 @app.middleware("http")
