@@ -152,6 +152,11 @@ def insert_data(conn, data, insert_query=db_insert_query):
 # [ ] TODO: Discuss with team if bulk insert or insert one by one
 def insert_articles(conn, articles):
     conn = get_db() if conn is None else conn
+
+    # Create the table if it does not exist
+    if not table_exists(conn, db_tbl_articles):
+        create_article_table(conn, db_tbl_articles)
+
     new_articles = []
     existing_urls = set(
         url[0] for url in conn.execute(f"SELECT url FROM {db_tbl_articles}").fetchall()
