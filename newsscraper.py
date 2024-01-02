@@ -113,6 +113,9 @@ class ScraperStrategy(ABC):
     ) -> tuple:
         for i in range(max_retries):
             proxy = proxy_scraper.get_next_proxy()
+            log.info(
+                f"Using proxy: {list(proxy.values())[0]} ({i+1}/{max_retries}) -> {article['url']}"
+            )
             result = await self.scrape_article(article, proxy)
             if result[0]:
                 return result
@@ -212,18 +215,17 @@ class GMANewsScraper(ScraperStrategy):
     async def scrape_article(self, article: dict, proxy: dict = None) -> tuple:
         async with httpx.AsyncClient(proxies=proxy) as client:
             try:
-                # Asynchronously download the article
-                if proxy is not None:
-                    log.info(f"Using proxy: {proxy}")
                 response = await client.get(article["url"])
             except Exception as e:
-                log.error(f"Error downloading article: {article['url']}")
+                log.error(
+                    f"HTTPX Error downloading article: {article['url']} {'' if proxy is None else '(with proxy: ' + list(proxy.values())[0] + ')'}"
+                )
                 return (False, article)
 
             # Check if the article was successfully downloaded
             if response.status_code != 200:
                 # Print the error code
-                log.info(f"Article status code: {response.status_code}")
+                log.error(f"HTTPX Response status code: {response.status_code}")
                 return (False, article)
 
             # Parse the HTML document with BeautifulSoup to get the author
@@ -240,15 +242,7 @@ class GMANewsScraper(ScraperStrategy):
             # Parse the article using newspaper3k
             news_article = Article(str(response.url))
             news_article.download(input_html=str(response.content))
-
-            # Check if the article was successfully downloaded
-            if news_article.download_state == 2:
-                # Parse the article
-                news_article.parse()
-            else:
-                # Print the error code
-                log.error("Article download state: ", news_article.download_state)
-                return (False, article)
+            news_article.parse()
 
             # Add the article's body, author, and read time to the dictionary
             article["body"] = news_article.text
