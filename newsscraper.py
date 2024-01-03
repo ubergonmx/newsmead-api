@@ -265,7 +265,7 @@ class ManilaBulletinScraper(ScraperStrategy):
             category_mapping={
                 category: category.value.lower() for category in Category
             },
-            rss_url="https://mb.com.ph/feed/[category]",
+            rss_url="https://mb.com.ph/rss/[category]",
             default_author="Manila Bulletin",
         )
 
