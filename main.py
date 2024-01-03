@@ -28,7 +28,6 @@ log = logging.getLogger(__name__)
 
 
 async def check_and_fix_empty_articles():
-    log.info("Refreshing proxies...")
     app.proxy_scraper.refresh_proxies()
     log.info("Checking and fixing empty articles...")
     for provider in Provider:
@@ -90,15 +89,20 @@ app.scheduler = AsyncIOScheduler(timezone=timezone("Asia/Manila"))
 
 # Scheduler jobs
 jobs = [
-    (  # every 6th hour and 30th minute of the day (12:30AM, 6:30AM, 12:30PM, 6:30PM)
-        check_and_fix_empty_articles,
-        "cron",
-        {"hour": "*/6", "minute": 30, "id": "check_and_fix_empty_articles"},
-    ),
     (  # every 6th hour of the day (12AM, 6AM, 12PM, 6PM)
         scrape_all_providers,
         "cron",
         {"hour": "*/6", "id": "scrape_all_providers"},
+    ),
+    (  # every 6th hour and 30th minute of the day (12:10AM, 6:10AM, 12:10PM, 6:10PM)
+        check_and_fix_empty_articles,
+        "cron",
+        {"hour": "*/6", "minute": 10, "id": "check_and_fix_empty_articles"},
+    ),
+    (  # every 5th hour and 55th minute of the day (11:55PM, 5:55AM, 11:55AM, 5:55PM)
+        check_and_fix_empty_articles,
+        "cron",
+        {"hour": "*/6", "minute": 10, "id": "check_and_fix_empty_articles"},
     ),
 ]
 
