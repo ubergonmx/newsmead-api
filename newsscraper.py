@@ -32,7 +32,7 @@ class Provider(Enum):
     GMANews = "gmanews"
     # Philstar = "philstar"
     # News5 = "news5"
-    # ManilaBulletin = "manilabulletin"
+    ManilaBulletin = "manilabulletin"
     # INQUIRER = "inquirer"
 
 
@@ -238,6 +238,38 @@ class GMANewsScraper(ScraperStrategy):
         )
 
 
+# class PhilstarScraper(ScraperStrategy):
+#     @property
+#     def config(self) -> Config:
+#         return Config(
+#             provider_name=Provider.Philstar.value,
+#             category_mapping={
+#                 Category.News: "headlines",
+#                 Category.Opinion: "opinion",
+#                 Category.Sports: "sports",
+#                 Category.Technology: "technology",
+#                 Category.Lifestyle: "lifestyle",
+#                 Category.Business: "business",
+#                 Category.Entertainment: "entertainment",
+#             },
+#             rss_url="https://www.philstar.com/rss/[category]",
+#             default_author="Philstar.com",
+#         )
+
+
+class ManilaBulletinScraper(ScraperStrategy):
+    @property
+    def config(self) -> Config:
+        return Config(
+            provider_name=Provider.ManilaBulletin.value,
+            category_mapping={
+                category: category.value.lower() for category in Category
+            },
+            rss_url="https://mb.com.ph/feed/[category]",
+            default_author="Manila Bulletin",
+        )
+
+
 class NewsScraper:
     def __init__(self, strategy: ScraperStrategy):
         self.strategy = strategy
@@ -260,7 +292,7 @@ provider_strategy_mapping = {
     Provider.GMANews: GMANewsScraper(),
     # Provider.Philstar: PhilstarScraper(),
     # Provider.News5: News5Scraper(),
-    # Provider.ManilaBulletin: ManilaBulletinScraper(),
+    Provider.ManilaBulletin: ManilaBulletinScraper(),
     # Provider.INQUIRER: InquirerScraper(),
 }
 
