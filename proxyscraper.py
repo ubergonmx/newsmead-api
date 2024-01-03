@@ -21,11 +21,6 @@ chrome_options.add_argument(
 )
 chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
 
-# Determine the correct ChromeDriver filename based on the OS
-# chromedriver = "chromedriver.exe" if os.name == "nt" else "chromedriver"
-# driver_service = ChromeService(chromedriver)
-driver = webdriver.Chrome(options=chrome_options)
-
 
 class ProxyScraper:
     def __init__(self):
@@ -40,6 +35,7 @@ class ProxyScraper:
 
     # [ ] TODO: Add try-except if website is down or HTML format changes
     def scrape_proxies(self) -> list[str]:
+        driver = webdriver.Chrome(options=chrome_options)
         # Proxy provider: SPYS.one
         spys_url = "https://spys.one/free-proxy-list/PH/"
         driver.get(spys_url)
@@ -81,6 +77,7 @@ class ProxyScraper:
         return proxies
 
     def refresh_proxies(self):
+        log.info("Refreshing proxies...")
         self.proxies = self.scrape_proxies()
         self.current_proxy_index = 0
         log.info(
