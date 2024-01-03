@@ -44,7 +44,7 @@ db_delete_duplicates_query = f"""
 
 
 # [ ] TODO: Properly implement get_db() function and close connection after use. Probably move to main.py and use try-except-finally block (rollback on exception, commit on success)
-# Get DB helper funciton
+# Get DB helper function
 def get_db():
     return sqlite3.connect(db_name)
 
