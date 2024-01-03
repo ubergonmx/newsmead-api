@@ -97,12 +97,12 @@ jobs = [
     (  # every 6th hour and 30th minute of the day (12:10AM, 6:10AM, 12:10PM, 6:10PM)
         check_and_fix_empty_articles,
         "cron",
-        {"hour": "*/6", "minute": 10, "id": "check_and_fix_empty_articles"},
+        {"hour": "*/6", "minute": 10, "id": "check_and_fix_empty_articles1"},
     ),
     (  # every 5th hour and 55th minute of the day (11:55PM, 5:55AM, 11:55AM, 5:55PM)
         check_and_fix_empty_articles,
         "cron",
-        {"hour": "*/6", "minute": 10, "id": "check_and_fix_empty_articles"},
+        {"hour": "*/6", "minute": 10, "id": "check_and_fix_empty_articles2"},
     ),
 ]
 
