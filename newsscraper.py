@@ -38,7 +38,7 @@ class Provider(Enum):
     # INQUIRER = "inquirer"
 
 
-class Config(NamedTuple):
+class ScraperConfig(NamedTuple):
     provider_name: str
     category_mapping: dict
     rss_url: str
@@ -50,7 +50,7 @@ class Config(NamedTuple):
 class ScraperStrategy(ABC):
     @property
     @abstractmethod
-    def config(self) -> Config:
+    def config(self) -> ScraperConfig:
         pass
 
     async def scrape_all(self, proxy_scraper=None) -> list:
@@ -225,8 +225,8 @@ class ScraperStrategy(ABC):
 
 class GMANewsScraper(ScraperStrategy):
     @property
-    def config(self) -> Config:
-        return Config(
+    def config(self) -> ScraperConfig:
+        return ScraperConfig(
             provider_name="Provider.GMANews.value",
             category_mapping={
                 Category.News: "news",
@@ -263,8 +263,8 @@ class GMANewsScraper(ScraperStrategy):
 
 class ManilaBulletinScraper(ScraperStrategy):
     @property
-    def config(self) -> Config:
-        return Config(
+    def config(self) -> ScraperConfig:
+        return ScraperConfig(
             provider_name=Provider.ManilaBulletin.value,
             category_mapping={
                 category: category.value.lower() for category in Category
