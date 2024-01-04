@@ -170,10 +170,13 @@ class ScraperStrategy(ABC):
         articles = []
         async with httpx.AsyncClient() as client:
             mapped_category = self.config.category_mapping[category]
-            log.info(f"{self._cname()} scraping for {category} ({mapped_category})")
 
             rss_url = self.config.rss_url.replace("[category]", mapped_category)
             rss_response = await client.get(rss_url)
+
+            log.info(
+                f"{self._cname()} scraping for {category} ({mapped_category}) - {rss_url}"
+            )
 
             if rss_response.status_code == 200:
                 if save:
