@@ -19,6 +19,11 @@ import feedparser
 # Configure logging
 log = logging.getLogger(__name__)
 
+# Configure feeds directory
+feeds_dir = "feeds"
+rss_dir = "rss"
+webcrawl_dir = "webcrawl"
+
 
 class Category(Enum):
     News = "news"
@@ -63,7 +68,6 @@ class ScraperStrategy(ABC):
     async def scrape_category(self, category: Category, proxy_scraper=None) -> list:
         if category in self.config.category_mapping:
             articles = await self.fetch_and_parse_rss(category)
-
             scraped_articles = await self.scrape_articles(articles, proxy_scraper)
 
             log.info(f"{self._cname()} scraping for {category} complete")
@@ -206,9 +210,9 @@ class ScraperStrategy(ABC):
         current_date = datetime.now().strftime("%Y-%m-%d")
         current_hr_min = datetime.now().strftime("%H-%M")
 
-        os.makedirs(f"feeds/{current_date}", exist_ok=True)
+        os.makedirs(f"{feeds_dir}/{rss_dir}/{current_date}", exist_ok=True)
 
-        filename = f"feeds/{current_date}/{self.config.provider_name}-{category.value}-{current_hr_min}.xml"
+        filename = f"{feeds_dir}/{rss_dir}/{current_date}/{self.config.provider_name}-{category.value}-{current_hr_min}.xml"
 
         with open(filename, "wb") as f:
             f.write(rss_content)
