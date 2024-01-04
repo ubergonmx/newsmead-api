@@ -4,6 +4,8 @@ from typing import NamedTuple
 from bs4 import BeautifulSoup
 from newspaper import Article
 from datetime import datetime
+from dateutil.parser import parse
+from fake_useragent import UserAgent
 import os
 import httpx
 import asyncio
@@ -29,7 +31,7 @@ class Category(Enum):
 
 
 class Provider(Enum):
-    GMANews = "gmanews"
+    # GMANews = "gmanews"
     # Philstar = "philstar"
     # News5 = "news5"
     ManilaBulletin = "manilabulletin"
@@ -97,18 +99,16 @@ class ScraperStrategy(ABC):
         return success
 
     async def scrape_article(self, article: dict, proxy: dict = None) -> tuple:
-        async with httpx.AsyncClient(follow_redirects=True, proxies=proxy) as client:
+        headers = {"User-Agent": UserAgent().random}
+        async with httpx.AsyncClient(
+            headers=headers, follow_redirects=True, proxies=proxy
+        ) as client:
             try:
                 response = await client.get(article["url"])
                 response.raise_for_status()
             except httpx.HTTPError as e:
-                exc = "\n".join(
-                    line
-                    for line in str(e).split("\n")
-                    if not line.startswith("For more information check: ")
-                )
                 log.error(
-                    f"HTTP Exception {'' if proxy is None else '(proxy: ' + list(proxy.values())[0] + ')'}: {exc}"
+                    f"HTTP Exception {'' if proxy is None else '(proxy: ' + list(proxy.values())[0] + ')'}: {e}"
                 )
                 return (False, article)
 
@@ -171,8 +171,9 @@ class ScraperStrategy(ABC):
         async with httpx.AsyncClient() as client:
             mapped_category = self.config.category_mapping[category]
 
+            headers = {"User-Agent": UserAgent().random}
             rss_url = self.config.rss_url.replace("[category]", mapped_category)
-            rss_response = await client.get(rss_url)
+            rss_response = await client.get(rss_url, headers=headers)
 
             log.info(
                 f"{self._cname()} scraping for {category} ({mapped_category}) - {rss_url}"
@@ -218,7 +219,7 @@ class ScraperStrategy(ABC):
         return self.__class__.__name__
 
     def parse_date(self, date):
-        date = datetime.strptime(date, "%a, %d %b %Y %H:%M:%S %z")
+        date = parse(date)
         return date.strftime("%b %d, %Y")
 
 
@@ -226,7 +227,7 @@ class GMANewsScraper(ScraperStrategy):
     @property
     def config(self) -> Config:
         return Config(
-            provider_name=Provider.GMANews.value,
+            provider_name="Provider.GMANews.value",
             category_mapping={
                 Category.News: "news",
                 Category.Opinion: "opinion",
@@ -292,7 +293,7 @@ class NewsScraper:
 
 # Define a mapping between Provider and ScraperStrategy
 provider_strategy_mapping = {
-    Provider.GMANews: GMANewsScraper(),
+    # Provider.GMANews: GMANewsScraper(),
     # Provider.Philstar: PhilstarScraper(),
     # Provider.News5: News5Scraper(),
     Provider.ManilaBulletin: ManilaBulletinScraper(),
