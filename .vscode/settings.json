@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "apscheduler",
+        "dateutil",
         "executemany",
         "fastapi",
         "gmanews",
