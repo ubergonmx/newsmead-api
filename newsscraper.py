@@ -36,7 +36,7 @@ class Category(Enum):
 
 
 class Provider(Enum):
-    # GMANews = "gmanews"
+    GMANews = "gmanews"
     # Philstar = "philstar"
     # News5 = "news5"
     ManilaBulletin = "manilabulletin"
@@ -231,7 +231,7 @@ class GMANewsScraper(ScraperStrategy):
     @property
     def config(self) -> ScraperConfig:
         return ScraperConfig(
-            provider_name="Provider.GMANews.value",
+            provider_name=Provider.GMANews.value,
             category_mapping={
                 Category.News: "news",
                 Category.Opinion: "opinion",
@@ -297,7 +297,7 @@ class NewsScraper:
 
 # Define a mapping between Provider and ScraperStrategy
 provider_strategy_mapping = {
-    # Provider.GMANews: GMANewsScraper(),
+    Provider.GMANews: GMANewsScraper(),
     # Provider.Philstar: PhilstarScraper(),
     # Provider.News5: News5Scraper(),
     Provider.ManilaBulletin: ManilaBulletinScraper(),
