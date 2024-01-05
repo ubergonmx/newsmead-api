@@ -80,9 +80,6 @@ class ProxyScraper:
         log.info("Refreshing proxies...")
         self.proxies = self.scrape_proxies()
         self.current_proxy_index = 0
-        log.info(
-            f"Refreshed proxies ({len(self.proxies)}): {json.dumps(self.proxies, indent=2)}"
-        )
 
     def get_proxies(self):
         return self.proxies
