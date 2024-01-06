@@ -116,6 +116,21 @@ class ScraperStrategy(ABC):
                 )
                 return (False, article)
 
+            # Check if the article is a video
+            if "video" in response.headers["content-type"]:
+                log.info(f"Article is a video: {article['url']}")
+                return (False, article)
+
+            # Check if the article is a photo gallery
+            if "gallery" in response.url.path:
+                log.info(f"Article is a photo gallery: {article['url']}")
+                return (False, article)
+
+            # Check if the response has no content
+            if len(response.content) == 0:
+                log.info(f"Article has no content: {article['url']}")
+                return (False, article)
+
             # Parse the HTML document with BeautifulSoup to get the author
             soup = BeautifulSoup(response.content, "html.parser")
             author = soup.find("meta", {"name": "author"})
