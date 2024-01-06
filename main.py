@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.responses import FileResponse
 from proxyscraper import ProxyScraper
-from newsscraper import NewsScraper, Provider, get_scraper_strategy, GMANewsScraper
+from newsscraper import NewsScraper, Provider, get_scraper_strategy
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
 from database_utils import (
