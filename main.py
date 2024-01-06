@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Depends, Request
+from fastapi.responses import FileResponse
 from proxyscraper import ProxyScraper
 from newsscraper import NewsScraper, Provider, get_scraper_strategy, GMANewsScraper
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -138,6 +139,17 @@ def get_proxies(update: bool = False) -> dict[str, list[str]]:
     return {"proxies": proxies}
 
 
+@app.get("/download-db")
+async def download_db():
+    db_path = "newsmead.sqlite"
+    if not os.path.exists(db_path):
+        raise HTTPException(status_code=404, detail="Database not found")
+
+    return FileResponse(
+        db_path, media_type="application/octet-stream", filename="newsmead.sqlite"
+    )
+
+
 # [ ] TODO: Add pagination
 # Get articles
 @app.get("/articles")
@@ -150,4 +162,4 @@ def get_articles():
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app)
