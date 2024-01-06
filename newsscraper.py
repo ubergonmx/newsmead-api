@@ -239,6 +239,10 @@ class ScraperStrategy(ABC):
         date = parse(date)
         return date.strftime("%b %d, %Y")
 
+    def parse_time(self, time):
+        time = parse(time)
+        return time.strftime("%I:%M %p")
+
 
 class GMANewsScraper(ScraperStrategy):
     @property
