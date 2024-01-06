@@ -177,8 +177,8 @@ def insert_articles(conn, articles):
             existing_count += 1
             continue
 
-        # Check if article body is empty
-        if article["body"] == "":
+        # Check if "body" key exists and article body is empty
+        if "body" not in article or article["body"] == "":
             log.info(f"Article body is empty: {article['title']}")
             empty_count += 1
             continue
