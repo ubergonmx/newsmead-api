@@ -1,3 +1,6 @@
+# Copyright (c) ubergonmx. All rights reserved.
+# Licensed under the BSD 2-Clause License.
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service as ChromeService

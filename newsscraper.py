@@ -1,3 +1,6 @@
+# Copyright (c) ubergonmx. All rights reserved.
+# Licensed under the BSD 2-Clause License.
+
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import NamedTuple

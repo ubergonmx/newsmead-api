@@ -1,6 +1,6 @@
 # BSD 2-Clause "Simplified" License
 
-Copyright (c) [YEAR], aaronpal, erik-lance
+Copyright (c) 2024, ubergonmx, erik-lance
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
