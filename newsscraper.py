@@ -159,6 +159,10 @@ class ScraperStrategy(ABC):
             if article["author"].isupper():
                 article["author"] = article["author"].title()
 
+            # CHeck if image url is empty
+            if article["image_url"] is None:
+                article["image_url"] = news_article.top_image
+
             article["read_time"] = str(readtime.of_text(news_article.text))
 
         return (True, article)
