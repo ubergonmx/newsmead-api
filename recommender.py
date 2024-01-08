@@ -1,7 +1,6 @@
 import logging
 import os
 import numpy as np
-import time
 
 from recommenders.models.newsrec.newsrec_utils import prepare_hparams
 from recommenders.models.newsrec.models.naml import NAMLModel
@@ -47,6 +46,9 @@ def predict(news_file, impression_file):
     group_preds = []
 
     print("start predicting...")
+
+    import time
+
     start_time = time.time()
     for (
         impr_index,
