@@ -163,3 +163,4 @@ cython_debug/
 *.sqlite
 logs/
 feeds/
+recommender/model/
