@@ -2,12 +2,17 @@ import logging
 import os
 import numpy as np
 
+# Suppress C++ level warnings.
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+# Suppress TensorFlow logging
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
+# Configure logging
+log = logging.getLogger(__name__)
+
 from recommenders.models.newsrec.newsrec_utils import prepare_hparams
 from recommenders.models.newsrec.models.naml import NAMLModel
 from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
-# Configure logging
-log = logging.getLogger(__name__)
 
 data_path = "recommender"
 wordEmb_file = os.path.join(data_path, "utils", "embedding_all.npy")
