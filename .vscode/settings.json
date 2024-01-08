@@ -5,12 +5,17 @@
         "executemany",
         "fastapi",
         "gmanews",
+        "hparams",
         "httpx",
+        "impr",
         "manilabulletin",
+        "NAML",
         "newsmead",
+        "newsrec",
         "newsscraper",
         "onmouseover",
         "Philstar",
+        "preds",
         "proxyscraper",
         "pydantic",
         "pytz",
@@ -18,6 +23,7 @@
         "rowid",
         "scitech",
         "SPYS",
-        "uvicorn"
+        "uvicorn",
+        "vecs"
     ]
 }
