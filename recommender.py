@@ -1,6 +1,9 @@
 import logging
 import os
 import numpy as np
+import io
+import time
+import tempfile
 
 # Suppress C++ level warnings.
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -13,7 +16,7 @@ from recommenders.models.newsrec.newsrec_utils import prepare_hparams
 from recommenders.models.newsrec.models.naml import NAMLModel
 from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 
-
+start_time = time.time()
 data_path = "recommender"
 wordEmb_file = os.path.join(data_path, "utils", "embedding_all.npy")
 userDict_file = os.path.join(data_path, "utils", "uid2index.pkl")
@@ -38,60 +41,51 @@ model = NAMLModel(hparams, iterator, seed=seed)
 model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
 
 # Setup inputs
-news = os.path.join(data_path, r"news-smol.tsv")
-impression = os.path.join(data_path, r"behaviors-smol.tsv")
+news = os.path.join(data_path, r"news.tsv")
+impression = "1\tU2000505\t11/15/2019 6:02:42 AM\tN22427 N15072 N16699 N22024 N22104 N15636\tN26508-0 N20150-1"
+model.news_vecs = model.run_news(news)
+print("setup time: ", time.time() - start_time)
 
 
-def predict(news_file, impression_file):
-    model.news_vecs = model.run_news(news_file)
-    model.user_vecs = model.run_user(news_file, impression_file)
+def predict(behavior: str, news_file=None):
+    behavior_file = None
+    try:
+        print("start predicting...")
+        # Create a temporary file called behavior-{random string}.tsv
+        with tempfile.NamedTemporaryFile(
+            mode="w", dir=data_path, prefix="behavior-", suffix=".tsv", delete=False
+        ) as f:
+            f.write(behavior)
+            behavior_file = f.name
+            print(behavior_file)
 
-    group_impr_indexes = []
-    group_labels = []
-    group_preds = []
+        start_time = time.time()
+        if hasattr(model.test_iterator, "impr_indexes"):
+            print("has attr")
+            del model.test_iterator.impr_indexes
+        model.user_vecs = model.run_user(news_file, behavior_file)
+        for (
+            impr_index,
+            news_index,
+            _,
+            _,
+        ) in model.test_iterator.load_impression_from_file(behavior_file):
+            pred = np.dot(
+                np.stack([model.news_vecs[i] for i in news_index], axis=0),
+                model.user_vecs[impr_index],
+            )
 
-    print("start predicting...")
-
-    import time
-
-    start_time = time.time()
-    for (
-        impr_index,
-        news_index,
-        user_index,
-        label,
-    ) in model.test_iterator.load_impression_from_file(impression):
-        pred = np.dot(
-            np.stack([model.news_vecs[i] for i in news_index], axis=0),
-            model.user_vecs[impr_index],
-        )
-        group_impr_indexes.append(impr_index)
-        group_labels.append(label)
-        group_preds.append(pred)
-
-    print("predicting time: ", time.time() - start_time)
-
-    predictions = []
-    for impr_index, preds in zip(group_impr_indexes, group_preds):
-        impr_index += 1
-        pred_rank = (np.argsort(np.argsort(preds)[::-1]) + 1).tolist()
-
-    impressions = []
-    # Open impression file
-    with open(impression_file, "r") as f:
-        uid, time, history, impr = f.readline().strip("\n").split("\t")[-4:]
-        impressions = [i.split("-")[0] for i in impr.split()]
-
-    # Create a dictionary where the keys are the ranks and the values are the impressions
-    articles = {rank: impression for rank, impression in zip(pred_rank, impressions)}
-
-    # Sort the dictionary by rank
-    articles = dict(sorted(articles.items()))
-
-    # Create a list of impressions sorted by rank
-    ranked = list(articles.values())
-
-    print(ranked)
+        pred_rank = (np.argsort(np.argsort(pred)[::-1]) + 1).tolist()
+        print("pred_rank: ", pred_rank)
+        impressions = [i.split("-")[0] for i in behavior.split("\t")[-1].split()]
+        merge = {r: i for r, i in zip(pred_rank, impressions)}
+        ranked_articles = dict(sorted(merge.items()))
+        articles = list(ranked_articles.values())
+        print("predicting time: ", time.time() - start_time)
+        return articles
+    finally:
+        # Delete the temporary file
+        os.remove(behavior_file)
 
 
-predict(news, impression)
+print(predict(impression))
