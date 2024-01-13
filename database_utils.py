@@ -215,6 +215,12 @@ def delete_duplicates(conn):
     log.info(f"Deleted duplicates.")
 
 
+def url_exists(conn, url):
+    cursor = get_db().cursor() if conn is None else conn.cursor()
+    cursor.execute("SELECT 1 FROM articles WHERE url=?", (url,))
+    return cursor.fetchone() is not None
+
+
 def delete_empty_body_by_provider(conn, provider):
     conn = get_db() if conn is None else conn
     run_query(
