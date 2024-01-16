@@ -1,3 +1,5 @@
+from concurrent.futures import ThreadPoolExecutor
+import asyncio
 import logging
 import os
 import numpy as np
@@ -43,10 +45,24 @@ class Recommender:
         self.model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
         log.info("Model setup time: ", time.time() - start_time)
 
-    def load_news(self, news_file: str = None):
-        self.model.news_vecs = self.model.run_news(news_file or self.news_file)
+    # def load_news(self, news_file: str = None):
+    #     self.model.news_vecs = self.model.run_news(news_file or self.news_file)
 
-    def predict(self, behavior: str) -> list[str]:
+    async def load_news(self, news_file: str = None):
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as pool:
+            await loop.run_in_executor(
+                pool, self.model.run_news, news_file or self.news_file
+            )
+
+    async def predict(self, behavior: str) -> list[str]:
+        loop = asyncio.get_event_loop()
+        with ThreadPoolExecutor() as pool:
+            result = await loop.run_in_executor(pool, self._predict, behavior)
+
+        return result
+
+    def _predict(self, behavior: str) -> list[str]:
         behavior_file = None
         try:
             print("start predicting...")
