@@ -9,6 +9,7 @@ from newspaper import Article
 from datetime import datetime
 from dateutil.parser import parse
 from fake_useragent import UserAgent
+from database_utils import url_exists
 import os
 import httpx
 import asyncio
@@ -40,10 +41,10 @@ class Category(Enum):
 
 class Provider(Enum):
     GMANews = "gmanews"
-    # Philstar = "philstar"
-    # News5 = "news5"
+    Philstar = "philstar"
+    News5 = "news5"
     ManilaBulletin = "manilabulletin"
-    # INQUIRER = "inquirer"
+    INQUIRER = "inquirer"
 
 
 class ScraperConfig(NamedTuple):
