@@ -72,7 +72,14 @@ class ScraperStrategy(ABC):
     async def scrape_category(self, category: Category, proxy_scraper=None) -> list:
         if category in self.config.category_mapping:
             articles = await self.fetch_and_parse_rss(category)
-            scraped_articles = await self.scrape_articles(articles, proxy_scraper)
+            filtered_articles = [
+                article
+                for article in articles
+                if not url_exists(article["url"], article["source"])
+            ]
+            scraped_articles = await self.scrape_articles(
+                filtered_articles, proxy_scraper
+            )
 
             log.info(f"{self._cname()} scraping for {category} complete")
             return scraped_articles
