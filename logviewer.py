@@ -46,8 +46,10 @@ async def log(request: Request):
     return templates.TemplateResponse("log.html", {"request": request})
 
 
-def logviewer():
-    logfile = "log.txt"
+# get log file from /logviewer/[log file]
+@router.get("/logviewer/{logfile}")
+async def get_log(logfile: str):
+    logfile = "logs/" + logfile
 
     # Check if the log file exists
     if not os.path.exists(logfile):
@@ -96,5 +98,6 @@ def logviewer():
     html = html.replace("\x1b[46m", "<span style='background-color:cyan'>")
     html = html.replace("\x1b[47m", "<span style='background-color:white'>")
 
-    # Add a refresh meta tag to the HTML
-    html = "<meta http-equiv='refresh' content='5'>" + html
+    # Display the log file in a web browser
+    print("Displaying log file '%s' in a web browser" % logfile)
+    return html
