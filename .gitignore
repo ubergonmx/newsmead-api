@@ -162,5 +162,5 @@ cython_debug/
 # NewsMead API project
 *.sqlite
 logs/
-feeds/
+sources/
 recommender/model/
