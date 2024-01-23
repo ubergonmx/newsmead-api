@@ -2,6 +2,7 @@
     "cSpell.words": [
         "apscheduler",
         "dateutil",
+        "dotenv",
         "executemany",
         "fastapi",
         "gmanews",
@@ -24,6 +25,7 @@
         "scitech",
         "SPYS",
         "uvicorn",
-        "vecs"
+        "vecs",
+        "webcrawler"
     ]
 }
