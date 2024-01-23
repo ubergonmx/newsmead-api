@@ -5,6 +5,7 @@ import os
 import numpy as np
 import time
 import tempfile
+import app.backend.config as config
 
 # Suppress C++ level warnings.
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -22,14 +23,16 @@ class Recommender:
     def __init__(self):
         start_time = time.time()
 
-        self.data_path = "recommender"
+        self.data_path = os.path.join(
+            config.get_project_root(), "app", "core", "recommender_utils"
+        )
         wordEmb_file = os.path.join(self.data_path, "utils", "embedding_all.npy")
         userDict_file = os.path.join(self.data_path, "utils", "uid2index.pkl")
         wordDict_file = os.path.join(self.data_path, "utils", "word_dict_all.pkl")
         vertDict_file = os.path.join(self.data_path, "utils", "vert_dict.pkl")
         subvertDict_file = os.path.join(self.data_path, "utils", "subvert_dict.pkl")
         yaml_file = os.path.join(self.data_path, "utils", "naml.yaml")
-        model_path = os.path.join(self.data_path, "model")
+        model_path = os.path.join(self.data_path, "pretrained")
         self.news_file = os.path.join(self.data_path, r"news.tsv")
 
         hparams = prepare_hparams(
@@ -43,7 +46,7 @@ class Recommender:
 
         self.model = NAMLModel(hparams, MINDAllIterator, seed=42)
         self.model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
-        log.info("Model setup time: ", time.time() - start_time)
+        log.info(f"Model setup time: {time.time() - start_time}")
 
     # def load_news(self, news_file: str = None):
     #     self.model.news_vecs = self.model.run_news(news_file or self.news_file)
@@ -95,12 +98,12 @@ class Recommender:
                 )
 
             pred_rank = (np.argsort(np.argsort(pred)[::-1]) + 1).tolist()
-            log.info("pred_rank: ", pred_rank)
+            log.info(f"pred_rank: {pred_rank}")
             impressions = [i.split("-")[0] for i in behavior.split("\t")[-1].split()]
             merge = {r: i for r, i in zip(pred_rank, impressions)}
             ranked_articles = dict(sorted(merge.items()))
             articles = list(ranked_articles.values())
-            log.info("predicting time: ", time.time() - start_time)
+            log.info(f"predicting time: {time.time() - start_time}")
             return articles
         finally:
             # Delete the temporary file
