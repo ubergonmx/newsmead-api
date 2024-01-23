@@ -13,22 +13,22 @@ import json
 # Configure logging
 log = logging.getLogger(__name__)
 
-# Set up the Chrome driver
-chrome_options = Options()
-chrome_options.add_argument("--headless=new")
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
-chrome_options.add_argument("--ignore-certificate-errors")
-chrome_options.add_argument(
-    "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0) Gecko/20100101 Firefox/39.0"
-)
-chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
-
 
 class ProxyScraper:
     def __init__(self):
         self.proxies = self.scrape_proxies()
         self.current_proxy_index = 0
+        self.chrome_options = Options()
+        self.chrome_options.add_argument("--headless=new")
+        self.chrome_options.add_argument("--no-sandbox")
+        self.chrome_options.add_argument("--disable-dev-shm-usage")
+        self.chrome_options.add_argument("--ignore-certificate-errors")
+        self.chrome_options.add_argument(
+            "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0) Gecko/20100101 Firefox/39.0"
+        )
+        self.chrome_options.add_experimental_option(
+            "excludeSwitches", ["enable-logging"]
+        )
 
     # [ ] TODO: Add try-except if no proxies are not available
     def get_next_proxy(self) -> dict[str, str]:
@@ -38,7 +38,7 @@ class ProxyScraper:
 
     # [ ] TODO: Add try-except if website is down or HTML format changes
     def scrape_proxies(self) -> list[str]:
-        driver = webdriver.Chrome(options=chrome_options)
+        driver = webdriver.Chrome(options=self.chrome_options)
         # Proxy provider: SPYS.one
         spys_url = "https://spys.one/free-proxy-list/PH/"
         driver.get(spys_url)
