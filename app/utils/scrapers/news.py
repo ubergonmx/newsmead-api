@@ -141,7 +141,7 @@ class ScraperStrategy(ABC):
             article.body = news_article.text
             article.author = (
                 author
-                if author is not None and news_article.authors[0] != author
+                if author is not None
                 else news_article.authors[0].strip()
                 if news_article.authors
                 else self.config.default_author
