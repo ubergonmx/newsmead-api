@@ -84,7 +84,9 @@ class AsyncDatabase:
 
         columns = ", ".join(data[0].keys())
         placeholders = ", ".join(["?" for _ in range(len(data[0]))])
-        query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
+        query = (
+            f"INSERT OR IGNORE INTO {table_name} ({columns}) VALUES ({placeholders});"
+        )
         values = [tuple(record.values()) for record in data]
         await self.run_query(query, values, is_many=True)
 
