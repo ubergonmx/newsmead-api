@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class Article(BaseModel):
-    date: str
+    date: str = ""
     category: str
     source: str
     title: str
@@ -10,4 +10,4 @@ class Article(BaseModel):
     url: str
     body: str = ""
     image_url: str = ""
-    read_time: str
+    read_time: str = ""
