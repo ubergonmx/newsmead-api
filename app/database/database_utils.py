@@ -5,9 +5,8 @@ import logging
 # Configure logging
 log = logging.getLogger(__name__)
 
-# [ ] TODO: Add to env
 # Configuration
-db_name = "newsmead.sqlite"
+db_name = os.getenv("DB_NAME", "news.db")
 db_tbl_articles = "articles"
 
 # [ ] TODO: Refactor queries
@@ -43,7 +42,6 @@ db_delete_duplicates_query = f"""
 # [ ] TODO: Add try-except blocks to all functions
 
 
-# [ ] TODO: Properly implement get_db() function and close connection after use. Probably move to main.py and use try-except-finally block (rollback on exception, commit on success)
 # Get DB helper function
 def get_db():
     return sqlite3.connect(db_name)
@@ -231,8 +229,3 @@ def delete_empty_body_by_provider(conn, provider):
     """,
     )
     log.info(f"Deleted empty body articles from {provider}.")
-
-
-# [ ] TODO: Fix this or remove
-def db_exists(db_name):
-    return os.path.exists(db_path())
