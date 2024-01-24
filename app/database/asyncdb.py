@@ -49,10 +49,13 @@ class AsyncDatabase:
         """
         await self.run_query(query)
 
-    async def run_query(self, query, params=None):
+    async def run_query(self, query, params=None, is_many=False):
         cursor = await self.conn.cursor()
         try:
-            await cursor.execute(query, params)
+            if is_many:
+                await cursor.executemany(query, params)
+            else:
+                await cursor.execute(query, params)
             await self.conn.commit()
         except Exception as e:
             await self.conn.rollback()
@@ -83,7 +86,7 @@ class AsyncDatabase:
         placeholders = ", ".join(["?" for _ in range(len(data[0]))])
         query = f"INSERT INTO {table_name} ({columns}) VALUES ({placeholders});"
         values = [tuple(record.values()) for record in data]
-        await self.run_query(query, values)
+        await self.run_query(query, values, is_many=True)
 
     async def insert_articles(self, articles: list[Article]):
         if not articles:
@@ -153,7 +156,9 @@ class AsyncDatabase:
         """
         await self.run_query(query)
 
-    async def filter_new_urls(self, articles: list[Article]) -> list[Article]:
+    async def filter_new_urls(
+        self, articles: list[Article], category: str = None
+    ) -> list[Article]:
         if not articles:
             return []
 
@@ -161,7 +166,7 @@ class AsyncDatabase:
             return articles
 
         # Fetch existing URLs asynchronously
-        existing_urls = await self.get_existing_urls()
+        existing_urls = await self.get_existing_urls(category=category)
 
         # Use asyncio.gather to parallelize URL filtering
         tasks = [self.filter_url(article, existing_urls) for article in articles]
@@ -169,10 +174,14 @@ class AsyncDatabase:
 
         return [article for article in filtered_articles if article is not None]
 
-    async def get_existing_urls(self) -> set:
+    async def get_existing_urls(self, category: str = None) -> set:
+        if not await self.table_exists("articles"):
+            return set()
         query = "SELECT url FROM articles"
-        result = await self.fetch(query)
-        return set(url[0] for url in result.fetchall())
+        query += " WHERE category=?" if category else ""
+        params = (category,) if category else None
+        result = await self.fetch(query, params)
+        return set(url[0] for url in result)
 
     async def filter_url(self, article: Article, existing_urls: set) -> Article:
         # Check if the URL already exists
