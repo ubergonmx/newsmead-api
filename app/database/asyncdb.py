@@ -157,6 +157,9 @@ class AsyncDatabase:
         if not articles:
             return []
 
+        if not await self.table_exists("articles"):
+            return articles
+
         # Fetch existing URLs asynchronously
         existing_urls = await self.get_existing_urls()
 
