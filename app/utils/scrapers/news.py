@@ -293,11 +293,11 @@ class PhilstarScraper(ScraperStrategy):
 
     def extract_author(self, soup: BeautifulSoup) -> str:
         author_tag = soup.find("div", class_="article__credits-author-pub")
-        return (
-            getattr(author_tag.find_all("a")[-1], "text", author_tag.text).strip()
-            if author_tag
-            else None
-        )
+        if author_tag:
+            a_tags = author_tag.find_all("a")
+            return a_tags[-1].text.strip() if a_tags else author_tag.text.strip()
+        else:
+            return None
 
 
 class ManilaBulletinScraper(ScraperStrategy):
