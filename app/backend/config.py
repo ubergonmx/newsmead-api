@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from .event_scheduler import schedule_jobs
-from app.utils.scrapers.proxyscraper import ProxyScraper
+from app.utils.scrapers.proxy import ProxyScraper
 from app.core.recommender import Recommender
 import logging.config
 import dotenv
@@ -30,19 +30,24 @@ def get_project_root():
 
 
 def get_log_dir():
-    return os.path.join(get_project_root(), os.getenv("LOG_DIR_NAME"))
+    return create_dir(os.path.join(get_project_root(), os.getenv("LOG_DIR_NAME")))
 
 
 def get_sources_dir():
-    return os.path.join(get_project_root(), os.getenv("SOURCES_DIR_NAME"))
+    return create_dir(os.path.join(get_project_root(), os.getenv("SOURCES_DIR_NAME")))
 
 
 def get_rss_dir():
-    return os.path.join(get_sources_dir(), os.getenv("RSS_DIR_NAME"))
+    return create_dir(os.path.join(get_sources_dir(), os.getenv("RSS_DIR_NAME")))
 
 
 def get_webcrawler_dir():
-    return os.path.join(get_sources_dir(), os.getenv("WEBCRAWLER_DIR_NAME"))
+    return create_dir(os.path.join(get_sources_dir(), os.getenv("WEBCRAWLER_DIR_NAME")))
+
+
+def create_dir(dir_path) -> str:
+    os.makedirs(dir_path, exist_ok=True)
+    return dir_path
 
 
 # Configure startup and shutdown events
