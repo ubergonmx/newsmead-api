@@ -16,7 +16,6 @@ log = logging.getLogger(__name__)
 
 class ProxyScraper:
     def __init__(self):
-        self.proxies = self.scrape_proxies()
         self.current_proxy_index = 0
         self.chrome_options = Options()
         self.chrome_options.add_argument("--headless=new")
@@ -29,6 +28,8 @@ class ProxyScraper:
         self.chrome_options.add_experimental_option(
             "excludeSwitches", ["enable-logging"]
         )
+
+        self.proxies = self.scrape_proxies()
 
     # [ ] TODO: Add try-except if no proxies are not available
     def get_next_proxy(self) -> dict[str, str]:
