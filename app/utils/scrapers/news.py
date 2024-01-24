@@ -57,7 +57,7 @@ class ScraperStrategy(ABC):
 
     async def scrape_all(self, proxy_scraper=None) -> list[Article]:
         results = []
-        for category in self.config.category_mapping.items():
+        for category in self.config.category_mapping:
             category_results = await self.scrape_category(category, proxy_scraper)
             results.extend(category_results)
         return results
@@ -210,6 +210,8 @@ class ScraperStrategy(ABC):
             f"{self.config.provider_name}-{category.value}-{current_time[11:]}.xml",  # Get the time part
         )
 
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
         with open(filename, "wb") as f:
             f.write(rss_content)
 
@@ -360,5 +362,5 @@ provider_strategy_mapping = {
 }
 
 
-async def get_scraper_strategy(provider: Provider) -> ScraperStrategy:
+def get_scraper_strategy(provider: Provider) -> ScraperStrategy:
     return provider_strategy_mapping.get(provider)
