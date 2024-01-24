@@ -9,7 +9,7 @@ from newspaper import Article as ArticleScraper
 from datetime import datetime
 from dateutil.parser import parse
 from fake_useragent import UserAgent
-from app.database.asyncdb import get_db
+from app.database.asyncdb import AsyncDatabase
 from app.models.article import Article
 import app.backend.config as config
 import os
@@ -67,7 +67,8 @@ class ScraperStrategy(ABC):
     ) -> list[Article]:
         if category in self.config.category_mapping:
             articles = await self.fetch_and_parse_rss(category)
-            filtered_articles = await get_db().filter_new_urls(articles)
+            async with AsyncDatabase() as db:
+                filtered_articles = await db.filter_new_urls(articles)
             scraped_articles = await self.scrape_articles(
                 filtered_articles, proxy_scraper
             )
@@ -157,7 +158,7 @@ class ScraperStrategy(ABC):
         for i in range(max_retries):
             proxy = proxy_scraper.get_next_proxy()
             log.info(
-                f"Using proxy: {list(proxy.values())[0]} ({i+1}/{max_retries}) -> {article['url']}"
+                f"Using proxy: {list(proxy.values())[0]} ({i+1}/{max_retries}) -> {article.url}"
             )
             result = await self.scrape_article(article, proxy)
             if result[0]:
@@ -195,7 +196,7 @@ class ScraperStrategy(ABC):
                     url=entry.link,
                     image_url=entry.media_content[0]["url"]
                     if "media_content" in entry
-                    else None,
+                    else "",
                 )
                 articles.append(article)
 
@@ -232,7 +233,7 @@ class ScraperStrategy(ABC):
 
         log.info(f"Saved webcrawler feed to {filename}")
 
-    def extract_author(soup: BeautifulSoup) -> str:
+    def extract_author(self, soup: BeautifulSoup) -> str:
         author = soup.find("meta", {"name": "author"})
         if author is not None:
             return author.get("content").split(",")[0].strip()
@@ -288,7 +289,7 @@ class PhilstarScraper(ScraperStrategy):
             default_author="Philstar.com",
         )
 
-    async def extract_author(soup: BeautifulSoup) -> str:
+    async def extract_author(self, soup: BeautifulSoup) -> str:
         author_tag = soup.find("div", class_="article__credits-author-pub")
         return (
             getattr(author_tag.find_all("a")[-1], "text", author_tag.text).strip()
@@ -309,7 +310,7 @@ class ManilaBulletinScraper(ScraperStrategy):
             default_author="Manila Bulletin",
         )
 
-    async def extract_author(soup: BeautifulSoup) -> str:
+    async def extract_author(self, soup: BeautifulSoup) -> str:
         author_tag = soup.find(
             "a", class_="custom-text-link uppercase author-name-link pb-0 mt-1"
         )
