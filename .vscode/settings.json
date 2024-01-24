@@ -25,6 +25,7 @@
         "rowid",
         "scitech",
         "SPYS",
+        "useragent",
         "uvicorn",
         "vecs",
         "webcrawler"
