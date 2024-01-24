@@ -1,12 +1,8 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
-from app.utils.scrapers.newsscraper import NewsScraper, Provider, get_scraper_strategy
-from app.utils.scrapers.proxyscraper import ProxyScraper
-from app.database.database import (
-    get_articles_by_provider,
-    insert_articles,
-    delete_empty_body_by_provider,
-)
+from app.utils.scrapers.proxy import ProxyScraper
+from app.database.asyncdb import get_db
+import app.utils.scrapers.news as news
 import os
 import logging.config
 
@@ -15,25 +11,27 @@ log = logging.getLogger(__name__)
 
 async def check_and_fix_empty_articles():
     log.info("Checking and fixing empty articles...")
-    for provider in Provider:
-        scraper_strategy = await get_scraper_strategy(provider)
-        news_scraper = NewsScraper(scraper_strategy)
-        empty_articles = await get_articles_by_provider(None, provider.value, True)
+    for provider in news.Provider:
+        scraper_strategy = await news.get_scraper_strategy(provider)
+        news_scraper = news.NewsScraper(scraper_strategy)
+        empty_articles = await get_db().get_articles_by_provider(
+            None, provider.value, True
+        )
         log.info(f"Empty articles: {empty_articles}")
         if len(empty_articles) == 0:
             continue
-        await delete_empty_body_by_provider(None, provider.value)
+        await get_db().delete_empty_body_by_provider(None, provider.value)
         articles = await news_scraper.scrape_articles(empty_articles, ProxyScraper())
-        await insert_articles(None, articles)
+        await get_db().insert_articles(None, articles)
 
 
 async def scrape_all_providers():
     log.info("Scraping all providers...")
-    for provider in Provider:
-        scraper_strategy = await get_scraper_strategy(provider)
-        news_scraper = NewsScraper(scraper_strategy)
+    for provider in news.Provider:
+        scraper_strategy = await get_db().get_scraper_strategy(provider)
+        news_scraper = news.NewsScraper(scraper_strategy)
         articles = await news_scraper.scrape_all(ProxyScraper())
-        await insert_articles(None, articles)
+        await get_db().insert_articles(None, articles)
 
 
 # Scheduler jobs
