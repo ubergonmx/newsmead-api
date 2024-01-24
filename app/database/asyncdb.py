@@ -15,7 +15,7 @@ class AsyncDatabase:
 
     async def __aenter__(self):
         self.conn = await aiosqlite.connect(self.db_name)
-        return self.conn
+        return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
         await self.conn.close()
@@ -168,7 +168,7 @@ class AsyncDatabase:
 
     async def get_existing_urls(self) -> set:
         query = "SELECT url FROM articles"
-        result = await self.execute(query)
+        result = await self.fetch(query)
         return set(url[0] for url in result.fetchall())
 
     async def filter_url(self, article: Article, existing_urls: set) -> Article:
