@@ -187,6 +187,6 @@ class AsyncDatabase:
         await self.run_query(query, (provider,))
 
 
-async def get_db():
+async def get_db() -> AsyncDatabase:
     async with AsyncDatabase() as db:
         yield db
