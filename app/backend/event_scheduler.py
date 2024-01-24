@@ -11,6 +11,7 @@ log = logging.getLogger(__name__)
 
 async def check_and_fix_empty_articles():
     log.info("Checking and fixing empty articles...")
+    proxy = ProxyScraper()
     async with AsyncDatabase() as db:
         for provider in news.Provider:
             scraper_strategy = await news.get_scraper_strategy(provider)
@@ -22,19 +23,18 @@ async def check_and_fix_empty_articles():
             if len(empty_articles) == 0:
                 continue
             await db.delete_empty_body_by_provider(provider.value)
-            articles = await news_scraper.scrape_articles(
-                empty_articles, ProxyScraper()
-            )
+            articles = await news_scraper.scrape_articles(empty_articles, proxy)
             await db.insert_articles(articles)
 
 
 async def scrape_all_providers():
     log.info("Scraping all providers...")
+    proxy = ProxyScraper()
     async with AsyncDatabase() as db:
         for provider in news.Provider:
             scraper_strategy = news.get_scraper_strategy(provider)
             news_scraper = news.NewsScraper(scraper_strategy)
-            articles = await news_scraper.scrape_all(ProxyScraper())
+            articles = await news_scraper.scrape_all(proxy)
             await db.insert_articles(articles)
 
 
