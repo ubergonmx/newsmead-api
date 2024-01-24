@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import Any
 from app.models.article import Article
 import asyncio
 import os
@@ -75,7 +75,7 @@ class AsyncDatabase:
         query = f"SELECT * FROM {table_name};"
         return await self.fetch(query)
 
-    async def insert_data(self, data: List[Dict[str, Any]], table_name: str):
+    async def insert_data(self, data: list[dict[str, Any]], table_name: str):
         if not data:
             return
 
@@ -85,7 +85,7 @@ class AsyncDatabase:
         values = [tuple(record.values()) for record in data]
         await self.run_query(query, values)
 
-    async def insert_articles(self, articles: List[Article]):
+    async def insert_articles(self, articles: list[Article]):
         if not articles:
             return
 
@@ -153,28 +153,28 @@ class AsyncDatabase:
         """
         await self.run_query(query)
 
-    async def filter_new_urls(self, urls: List[str]) -> List[str]:
-        if not urls:
+    async def filter_new_urls(self, articles: list[Article]) -> list[Article]:
+        if not articles:
             return []
 
         # Fetch existing URLs asynchronously
         existing_urls = await self.get_existing_urls()
 
         # Use asyncio.gather to parallelize URL filtering
-        tasks = [self.filter_url(url, existing_urls) for url in urls]
-        filtered_urls = await asyncio.gather(*tasks)
+        tasks = [self.filter_url(article, existing_urls) for article in articles]
+        filtered_articles = await asyncio.gather(*tasks)
 
-        return [url for url in filtered_urls if url is not None]
+        return [article for article in filtered_articles if article is not None]
 
     async def get_existing_urls(self) -> set:
         query = "SELECT url FROM articles"
         result = await self.execute(query)
         return set(url[0] for url in result.fetchall())
 
-    async def filter_url(self, url: str, existing_urls: set) -> str:
+    async def filter_url(self, article: Article, existing_urls: set) -> Article:
         # Check if the URL already exists
-        if url not in existing_urls:
-            return url
+        if article.url not in existing_urls:
+            return article
         return None
 
     async def url_exists(self, url):
