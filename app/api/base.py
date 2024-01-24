@@ -1,5 +1,5 @@
-from app.utils.scrapers.proxyscraper import ProxyScraper
-from app.utils.scrapers.newsscraper import NewsScraper, Provider, get_scraper_strategy
+from app.utils.scrapers.proxy import ProxyScraper
+from app.utils.scrapers.news import NewsScraper, Provider, get_scraper_strategy
 from app.database.database_utils import get_articles
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
