@@ -115,8 +115,8 @@ class AsyncDatabase:
                 # Check if "body" key exists and article body is empty
                 if "body" not in article_dict or not article_dict["body"]:
                     log.info(f"Article body is empty: {article_dict['title']}")
+                    article_dict["body"] = ""
                     empty_count += 1
-                    continue
 
                 # Log the article to be inserted
                 log_article = article_dict.copy()
