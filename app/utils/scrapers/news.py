@@ -68,7 +68,9 @@ class ScraperStrategy(ABC):
         if category in self.config.category_mapping:
             articles = await self.fetch_and_parse_rss(category)
             async with AsyncDatabase() as db:
-                filtered_articles = await db.filter_new_urls(articles)
+                filtered_articles = await db.filter_new_urls(
+                    articles, category=category.value
+                )
             scraped_articles = await self.scrape_articles(
                 filtered_articles, proxy_scraper
             )
@@ -289,7 +291,7 @@ class PhilstarScraper(ScraperStrategy):
             default_author="Philstar.com",
         )
 
-    async def extract_author(self, soup: BeautifulSoup) -> str:
+    def extract_author(self, soup: BeautifulSoup) -> str:
         author_tag = soup.find("div", class_="article__credits-author-pub")
         return (
             getattr(author_tag.find_all("a")[-1], "text", author_tag.text).strip()
@@ -310,7 +312,7 @@ class ManilaBulletinScraper(ScraperStrategy):
             default_author="Manila Bulletin",
         )
 
-    async def extract_author(self, soup: BeautifulSoup) -> str:
+    def extract_author(self, soup: BeautifulSoup) -> str:
         author_tag = soup.find(
             "a", class_="custom-text-link uppercase author-name-link pb-0 mt-1"
         )
