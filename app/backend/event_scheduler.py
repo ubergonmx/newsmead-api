@@ -1,7 +1,7 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
 from app.utils.scrapers.proxy import ProxyScraper
-from app.database.asyncdb import get_db
+from app.database.asyncdb import AsyncDatabase
 import app.utils.scrapers.news as news
 import os
 import logging.config
@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 async def check_and_fix_empty_articles():
     log.info("Checking and fixing empty articles...")
-    async for db in get_db():
+    async with AsyncDatabase() as db:
         for provider in news.Provider:
             scraper_strategy = await news.get_scraper_strategy(provider)
             news_scraper = news.NewsScraper(scraper_strategy)
@@ -30,7 +30,7 @@ async def check_and_fix_empty_articles():
 
 async def scrape_all_providers():
     log.info("Scraping all providers...")
-    async for db in get_db():
+    async with AsyncDatabase() as db:
         for provider in news.Provider:
             scraper_strategy = news.get_scraper_strategy(provider)
             news_scraper = news.NewsScraper(scraper_strategy)
