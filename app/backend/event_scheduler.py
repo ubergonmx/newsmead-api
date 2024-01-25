@@ -14,7 +14,7 @@ async def check_and_fix_empty_articles():
     proxy = ProxyScraper()
     async with AsyncDatabase() as db:
         for provider in news.Provider:
-            scraper_strategy = await news.get_scraper_strategy(provider)
+            scraper_strategy = news.get_scraper_strategy(provider)
             news_scraper = news.NewsScraper(scraper_strategy)
             empty_articles = await db.get_articles_by_provider(
                 None, provider.value, True

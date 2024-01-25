@@ -64,8 +64,8 @@ async def lifespan(app: FastAPI):
         # app.recommender = Recommender()
 
         # TBR: Scrape all providers
-        log.info("Scraping all providers...")
-        await scrape_all_providers()
+        # log.info("Scraping all providers...")
+        # await scrape_all_providers()
 
         # Add scheduler jobs
         log.info("Adding scheduler jobs...")
