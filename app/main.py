@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
+from collections import defaultdict
 from app.api import articles, base, logviewer, recommender
 import logging.config
 import random
@@ -18,7 +19,6 @@ app.include_router(recommender.router, prefix="/recommender")
 app.include_router(logviewer.router, prefix="/logviewer")
 
 
-# API endpoints
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     idem = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -41,3 +41,27 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app)
+
+# Store the timestamp of the last request from each IP
+last_request = defaultdict(int)
+# Store the number of requests from each IP in the last second
+request_counts = defaultdict(int)
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    ip = request.client.host
+
+    # If the IP is blocked, return a 429 response
+    if time() - last_request[ip] < 1 and request_counts[ip] > 10:
+        raise HTTPException(status_code=429, detail="Too Many Requests")
+
+    # Update the timestamp of the last request and the request count
+    if time() - last_request[ip] > 1:
+        last_request[ip] = time()
+        request_counts[ip] = 1
+    else:
+        request_counts[ip] += 1
+
+    response = await call_next(request)
+    return response
