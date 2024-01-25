@@ -61,14 +61,14 @@ async def rate_limit_middleware(request: Request, call_next):
         raise HTTPException(status_code=429, detail="Too Many Requests")
 
     # If the IP has sent more than 2 requests in the last second, block it for 5 minutes
-    if time() - last_request[ip] < 1 and request_counts[ip] > 2:
+    if time.time() - last_request[ip] < 1 and request_counts[ip] > 2:
         log.warning(f"IP address too many requests: {ip}")
         blocked_until[ip] = datetime.now() + timedelta(minutes=5)
         raise HTTPException(status_code=429, detail="Too Many Requests")
 
     # Update the timestamp of the last request and the request count
-    if time() - last_request[ip] > 1:
-        last_request[ip] = time()
+    if time.time() - last_request[ip] > 1:
+        last_request[ip] = time.time()
         request_counts[ip] = 1
     else:
         request_counts[ip] += 1
