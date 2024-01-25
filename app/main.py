@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from app.api import base, logviewer, recommender
+from app.api import articles, base, logviewer, recommender
 import logging.config
 import random
 import string
@@ -13,8 +13,9 @@ log = logging.getLogger(__name__)
 # Configure app
 app = FastAPI(lifespan=config.lifespan)
 app.include_router(base.router)
-app.include_router(logviewer.router, prefix="/logviewer")
+app.include_router(articles.router, prefix="/articles")
 app.include_router(recommender.router, prefix="/recommender")
+app.include_router(logviewer.router, prefix="/logviewer")
 
 
 # API endpoints

@@ -1,20 +1,30 @@
 from sqlite3 import IntegrityError
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, File, UploadFile, HTTPException, Depends, Header
 from app.database.asyncdb import AsyncDatabase, get_db
 from app.models.article import Article
+import app.backend.config as config
+import os
 
 router = APIRouter()
 
+secret_keyphrase = "n3w5me@d-s3cret"
 
-@router.post("/articles/")
-async def create_article(article: Article, db: AsyncDatabase = Depends(get_db)):
-    try:
-        await db.create_article_table()  # Ensure table exists
-        await db.insert_data([article])  # Insert data
-        return {"message": "Article created successfully"}
-    except IntegrityError as e:
+
+def verify_keyphrase(keyphrase: str = Header(...)):
+    if keyphrase != secret_keyphrase:
+        raise HTTPException(status_code=403, detail="Invalid keyphrase")
+    return keyphrase
+
+
+@router.post("/upload-db/")
+async def create_upload_db(
+    file: UploadFile = File(...), keyphrase: str = Depends(verify_keyphrase)
+):
+    if file.filename == os.getenv("DB_NAME"):
         raise HTTPException(
-            status_code=400, detail="Duplicate entry or integrity error"
+            status_code=400, detail="Cannot upload database with same name"
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    filepath = os.path.join(config.get_project_root, file.filename)
+    with open(filepath, "wb") as f:
+        f.write(file.file.read())
+    return {"message": "Database uploaded successfully"}
