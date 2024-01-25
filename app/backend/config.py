@@ -61,7 +61,7 @@ async def lifespan(app: FastAPI):
 
         # Setup ML model
         log.info("Setting up ML model...")
-        app.recommender = Recommender()
+        # app.recommender = Recommender()
 
         # TBR: Scrape all providers
         # log.info("Scraping all providers...")
