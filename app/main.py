@@ -1,5 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException
 from collections import defaultdict
+from datetime import datetime, timedelta
 from app.api import articles, base, logviewer, recommender
 import logging.config
 import random
@@ -46,14 +47,23 @@ if __name__ == "__main__":
 last_request = defaultdict(int)
 # Store the number of requests from each IP in the last second
 request_counts = defaultdict(int)
+# Store the timestamp of when each IP was blocked
+blocked_until = defaultdict(datetime)
 
 
 @app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next):
     ip = request.client.host
 
-    # If the IP is blocked, return a 429 response
-    if time() - last_request[ip] < 1 and request_counts[ip] > 10:
+    # If the IP is blocked and 5 minutes have not passed, return a 429 response
+    if ip in blocked_until and datetime.now() < blocked_until[ip]:
+        log.warning(f"IP address blocked: {ip}")
+        raise HTTPException(status_code=429, detail="Too Many Requests")
+
+    # If the IP has sent more than 2 requests in the last second, block it for 5 minutes
+    if time() - last_request[ip] < 1 and request_counts[ip] > 2:
+        log.warning(f"IP address too many requests: {ip}")
+        blocked_until[ip] = datetime.now() + timedelta(minutes=5)
         raise HTTPException(status_code=429, detail="Too Many Requests")
 
     # Update the timestamp of the last request and the request count
