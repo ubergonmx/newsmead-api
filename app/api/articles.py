@@ -16,7 +16,7 @@ async def get_articles(
     text: Optional[str] = Query(None),
     sortBy: Optional[str] = Query(None),
     page: int = Query(1),
-    page_size: int = Query(10),
+    page_size: int = Query(30),
     db: AsyncDatabase = Depends(get_db),
 ):
     filter = Filter(
@@ -29,7 +29,11 @@ async def get_articles(
     )
     try:
         articles = await db.get_articles(filter, page, page_size)
-        return articles
+        return {
+            "status": "success",
+            "totalResults": len(articles),
+            "articles": articles,
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -43,14 +47,14 @@ async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.post("/new")
-async def create_article(article: Article, db: AsyncDatabase = Depends(get_db)):
-    try:
-        await db.insert_data([article])
-        return {"message": "Article created successfully"}
-    except IntegrityError as e:
-        raise HTTPException(
-            status_code=400, detail="Duplicate entry or integrity error"
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# @router.post("/new")
+# async def create_article(article: Article, db: AsyncDatabase = Depends(get_db)):
+#     try:
+#         await db.insert_data([article])
+#         return {"message": "Article created successfully"}
+#     except IntegrityError as e:
+#         raise HTTPException(
+#             status_code=400, detail="Duplicate entry or integrity error"
+#         )
+#     except Exception as e:
+#         raise HTTPException(status_code=500, detail=str(e))
