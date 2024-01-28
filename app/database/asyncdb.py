@@ -187,7 +187,7 @@ class AsyncDatabase:
         return articles
 
     async def get_empty_articles(self, provider: str) -> list[Article]:
-        query = "SELECT * FROM articles WHERE (author = '' OR body = '' OR image_url = '') AND source = ?;"
+        query = "SELECT * FROM articles WHERE (author = '' OR author IS NULL OR body = '' OR body IS NULL OR image_url = '' OR image_url IS NULL) AND source = ?;"
         articles = await self.fetch(query, (provider,))
         empty_articles = self._set_articles(articles)
         log.info(f"Empty articles ({provider}): {len(empty_articles)}")
@@ -280,6 +280,6 @@ class AsyncDatabase:
         log.info(f"Updated {len(articles)} articles ({articles[0].source}).")
 
 
-async def get_db() -> AsyncDatabase:
+async def get_db():
     async with AsyncDatabase() as db:
         yield db
