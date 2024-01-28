@@ -1,7 +1,9 @@
-from pydantic import BaseModel, Field
+from typing import Optional
+from pydantic import BaseModel
 
 
 class Article(BaseModel):
+    article_id: Optional[int] = None
     date: str = ""
     category: str
     source: str
