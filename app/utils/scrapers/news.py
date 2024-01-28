@@ -245,13 +245,7 @@ class ScraperStrategy(ABC):
         return self.__class__.__name__
 
     def parse_date_complete(self, date) -> str:
-        return parse(date).strftime("%b %d, %Y-%I:%M %p")
-
-    def parse_date(self, date) -> str:
-        return parse(date).strftime("%b %d, %Y")
-
-    def parse_time(self, time) -> str:
-        return parse(time).strftime("%I:%M %p")
+        return parse(date).strftime("%Y-%m-%d %H:%M:%S")
 
 
 class GMANewsScraper(ScraperStrategy):
@@ -342,13 +336,15 @@ class NewsScraper:
     def __init__(self, strategy: ScraperStrategy):
         self.strategy = strategy
 
-    async def scrape_all(self, proxy_scraper) -> list:
+    async def scrape_all(self, proxy_scraper) -> list[Article]:
         return await self.strategy.scrape_all(proxy_scraper=proxy_scraper)
 
-    async def scrape_category(self, category: Category) -> list:
+    async def scrape_category(self, category: Category) -> list[Article]:
         return await self.strategy.scrape_category(category)
 
-    async def scrape_articles(self, articles: list, proxy_scraper=None) -> list:
+    async def scrape_articles(
+        self, articles: list[Article], proxy_scraper=None
+    ) -> list[Article]:
         return await self.strategy.scrape_articles(articles, proxy_scraper)
 
     # async def scrape_url(self, url: str) -> dict:
@@ -359,9 +355,9 @@ class NewsScraper:
 provider_strategy_mapping = {
     Provider.GMANews: GMANewsScraper(),
     Provider.Philstar: PhilstarScraper(),
-    # Provider.News5: News5Scraper(),
     Provider.ManilaBulletin: ManilaBulletinScraper(),
     Provider.INQUIRER: InquirerScraper(),
+    # Provider.News5: News5Scraper(),
 }
 
 
