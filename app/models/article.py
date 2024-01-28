@@ -11,7 +11,7 @@ class Article(BaseModel):
     author: str = ""
     url: str
     body: str = ""
-    image_url: str = ""
+    image_url: Optional[str] = ""
     read_time: str = ""
 
 
