@@ -1,5 +1,5 @@
-from typing import Any
-from app.models.article import Article
+from typing import Any, Optional
+from app.models.article import Article, Filter
 import asyncio
 import os
 import aiosqlite
@@ -138,14 +138,41 @@ class AsyncDatabase:
             f"Inserted {len(new_articles)}/{len(articles)} (dup:-{existing_count}, inv:-{invalid_count}, emt:+{empty_count}, ok=+{len(new_articles)-empty_count}) articles."
         )
 
-    async def get_articles(self):
-        query = "SELECT * FROM articles;"
-        return await self.fetch(query)
+    async def get_articles(self, filter: Filter, page: int = 1, page_size: int = 10):
+        conditions = []
+        params = []
 
-    async def get_articles_by_provider(self, provider, empty_body=False):
-        condition = "IS" if empty_body else "IS NOT"
-        query = f"SELECT * FROM articles WHERE source = ? AND body {condition} '';"
-        return await self.fetch(query, (provider,))
+        if filter.source is not None:
+            conditions.append("source = ?")
+            params.append(filter.source)
+
+        if filter.category is not None:
+            conditions.append("category = ?")
+            params.append(filter.category)
+
+        if filter.startDate is not None:
+            conditions.append("date >= ?")
+            params.append(filter.startDate)
+
+        if filter.endDate is not None:
+            conditions.append("date <= ?")
+            params.append(filter.endDate)
+
+        conditions_sql = " AND ".join(conditions)
+        query = (
+            f"SELECT * FROM articles WHERE {conditions_sql} ORDER BY {filter.sortBy or 'date'} LIMIT ? OFFSET ?;"
+            if conditions
+            else f"SELECT * FROM articles ORDER BY {filter.sortBy or 'date'} LIMIT ? OFFSET ?;"
+        )
+
+        offset = (page - 1) * page_size
+        params.extend([page_size, offset])
+
+        return Article().model_load(await self.fetch(query, tuple(params)))
+
+    async def get_empty_articles(self, provider: str) -> list[Article]:
+        query = "SELECT * FROM articles WHERE (author = '' OR body = '' OR image_url = '') AND source = ?;"
+        return Article().model_load(await self.fetch(query, (provider,)))
 
     async def delete_duplicates(self):
         query = """
@@ -186,7 +213,6 @@ class AsyncDatabase:
         return set(url[0] for url in result)
 
     async def filter_url(self, article: Article, existing_urls: set) -> Article:
-        # Check if the URL already exists
         if article.url not in existing_urls:
             return article
         return None
@@ -196,9 +222,19 @@ class AsyncDatabase:
         result = await self.fetch(query, (url,))
         return bool(result)
 
-    async def delete_empty_body_by_provider(self, provider):
-        query = "DELETE FROM articles WHERE body = '' AND source = ?;"
-        await self.run_query(query, (provider,))
+    async def update_empty_articles(self, articles: list[Article]):
+        if not articles:
+            return
+
+        if not await self.table_exists("articles"):
+            return
+
+        query = "UPDATE articles SET author=?, body=?, image_url=? WHERE url=?;"
+        params = [
+            (article.author, article.body, article.image_url, article.url)
+            for article in articles
+        ]
+        await self.run_query(query, params)
 
 
 async def get_db() -> AsyncDatabase:
