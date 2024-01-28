@@ -17,7 +17,6 @@ async def check_and_fix_empty_articles():
             scraper_strategy = news.get_scraper_strategy(provider)
             news_scraper = news.NewsScraper(scraper_strategy)
             empty_articles = await db.get_empty_articles(provider.value)
-            log.info(f"Empty articles ({provider.value}): {len(empty_articles)}")
             if len(empty_articles) == 0:
                 continue
             articles = await news_scraper.scrape_articles(empty_articles, proxy)
