@@ -265,9 +265,15 @@ class AsyncDatabase:
         if not await self.table_exists("articles"):
             return
 
-        query = "UPDATE articles SET author=?, body=?, image_url=? WHERE url=?;"
+        query = "UPDATE articles SET author=?, url=?, body=?, image_url=? WHERE article_id=?;"
         params = [
-            (article.author, article.body, article.image_url, article.url)
+            (
+                article.author,
+                article.url,
+                article.body,
+                article.image_url,
+                article.article_id,
+            )
             for article in articles
         ]
         await self.run_query(query, params, is_many=True)
