@@ -18,6 +18,7 @@ import asyncio
 import readtime
 import logging
 import feedparser
+import re
 
 # Configure logging
 log = logging.getLogger(__name__)
@@ -330,6 +331,24 @@ class InquirerScraper(ScraperStrategy):
             rss_url="https://[category].inquirer.net/feed",
             default_author="INQUIRER.net",
         )
+
+    def extract_author(self, soup: BeautifulSoup) -> str:
+        author = super().extract_author(soup)
+        if author:
+            return author
+
+        script_tag = soup.find("script", text=re.compile(r"\'author_name\':"))
+        if script_tag:
+            author_name_match = re.search(
+                r"\'author_name\': \'(.*?)\'", script_tag.text
+            )
+            return author_name_match.group(1).strip() if author_name_match else None
+
+        # If author_name is empty in script, extract from the subsequent div tag
+        div_tag = soup.find("div", id="art_plat")
+        if div_tag:
+            author_link = div_tag.find("a")
+            return author_link.text.strip() if author_link else None
 
 
 class NewsScraper:
