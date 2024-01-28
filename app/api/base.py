@@ -3,10 +3,16 @@ from app.utils.scrapers.news import NewsScraper, Provider, get_scraper_strategy
 from app.database.database_utils import get_articles
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
+import app.backend.config as config
 import os
-import time
+import datetime
 
 router = APIRouter()
+
+
+@router.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse(os.join.path(config.get_project_root(), "favicon.ico"))
 
 
 @router.get("/")
@@ -16,8 +22,7 @@ def read_root():
 
 @router.get("/status")
 def get_status():
-    # return datetime.time (get current time of server)
-    return {"status": "OK", "time": time.time()}
+    return {"status": "OK", "time": datetime.datetime.now()}
 
 
 @router.get("/proxies")
@@ -33,13 +38,5 @@ async def download_db():
         raise HTTPException(status_code=404, detail="Database not found")
 
     return FileResponse(
-        db_path, media_type="routerlication/octet-stream", filename="newsmead.sqlite"
+        db_path, media_type="application/octet-stream", filename="newsmead.sqlite"
     )
-
-
-# Get articles
-@router.get("/articles")
-def get_articles():
-    # [ ] TODO: Add pagination
-    articles = get_articles(None)
-    return {"total": len(articles), "articles": articles}
