@@ -138,6 +138,13 @@ class AsyncDatabase:
             f"Inserted {len(new_articles)}/{len(articles)} (dup:-{existing_count}, inv:-{invalid_count}, emt:+{empty_count}, ok=+{len(new_articles)-empty_count}) articles."
         )
 
+    async def get_article_by_id(self, article_id: int) -> Article:
+        query = "SELECT * FROM articles WHERE article_id=?;"
+        result = await self.fetch(query, (article_id,))
+        if not result:
+            return None
+        return self._set_article(result[0])
+
     async def get_articles(
         self, filter: Filter, page: int = 1, page_size: int = 10
     ) -> list[Article]:
