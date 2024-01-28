@@ -16,6 +16,7 @@ class Article(BaseModel):
 
 
 class Filter(BaseModel):
+    text: Optional[str] = None
     category: Optional[str] = None
     source: Optional[str] = None
     sortBy: Optional[str] = None
