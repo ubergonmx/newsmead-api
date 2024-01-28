@@ -16,15 +16,12 @@ async def check_and_fix_empty_articles():
         for provider in news.Provider:
             scraper_strategy = news.get_scraper_strategy(provider)
             news_scraper = news.NewsScraper(scraper_strategy)
-            empty_articles = await db.get_articles_by_provider(
-                None, provider.value, True
-            )
-            log.info(f"Empty articles: {empty_articles}")
+            empty_articles = await db.get_empty_articles(provider.value)
+            log.info(f"Empty articles ({provider.value}): {len(empty_articles)}")
             if len(empty_articles) == 0:
                 continue
-            await db.delete_empty_body_by_provider(provider.value)
             articles = await news_scraper.scrape_articles(empty_articles, proxy)
-            await db.insert_articles(articles)
+            await db.update_empty_articles(articles)
 
 
 async def scrape_all_providers():
