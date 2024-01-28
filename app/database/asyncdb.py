@@ -138,7 +138,9 @@ class AsyncDatabase:
             f"Inserted {len(new_articles)}/{len(articles)} (dup:-{existing_count}, inv:-{invalid_count}, emt:+{empty_count}, ok=+{len(new_articles)-empty_count}) articles."
         )
 
-    async def get_articles(self, filter: Filter, page: int = 1, page_size: int = 10):
+    async def get_articles(
+        self, filter: Filter, page: int = 1, page_size: int = 10
+    ) -> list[Article]:
         conditions = []
         params = []
 
@@ -158,17 +160,24 @@ class AsyncDatabase:
             conditions.append("date <= ?")
             params.append(filter.endDate)
 
+        if filter.text is not None:
+            conditions.append("title LIKE ? OR body LIKE ?")
+            params.append(f"%{filter.text}%", f"%{filter.text}%")
+
         conditions_sql = " AND ".join(conditions)
+        sort_order = "RANDOM()" if filter.sortBy == "recent" else "date DESC"
         query = (
-            f"SELECT * FROM articles WHERE {conditions_sql} ORDER BY {filter.sortBy or 'date'} LIMIT ? OFFSET ?;"
+            f"SELECT * FROM articles WHERE {conditions_sql} ORDER BY date {sort_order} LIMIT ? OFFSET ?;"
             if conditions
-            else f"SELECT * FROM articles ORDER BY {filter.sortBy or 'date'} LIMIT ? OFFSET ?;"
+            else f"SELECT * FROM articles ORDER BY {sort_order} LIMIT ? OFFSET ?;"
         )
 
         offset = (page - 1) * page_size
         params.extend([page_size, offset])
 
-        return Article().model_load(await self.fetch(query, tuple(params)))
+        results = await self.fetch(query, params)
+        articles = [article for article in self._set_articles(results) if article.body]
+        return articles
 
     async def get_empty_articles(self, provider: str) -> list[Article]:
         query = "SELECT * FROM articles WHERE (author = '' OR body = '' OR image_url = '') AND source = ?;"
