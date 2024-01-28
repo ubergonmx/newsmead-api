@@ -150,7 +150,7 @@ class ScraperStrategy(ABC):
             article.author = (
                 article.author.title() if article.author.isupper() else article.author
             )
-            article.url = response.url
+            article.url = str(response.url)
             article.image_url = article.image_url or news_article.top_image
             article.read_time = str(readtime.of_text(news_article.text))
 
