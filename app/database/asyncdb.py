@@ -174,7 +174,7 @@ class AsyncDatabase:
         conditions_sql = " AND ".join(conditions)
         sort_order = "RANDOM()" if filter.sortBy == "recent" else "date DESC"
         query = (
-            f"SELECT * FROM articles WHERE {conditions_sql} ORDER BY date {sort_order} LIMIT ? OFFSET ?;"
+            f"SELECT * FROM articles WHERE {conditions_sql} ORDER BY {sort_order} LIMIT ? OFFSET ?;"
             if conditions
             else f"SELECT * FROM articles ORDER BY {sort_order} LIMIT ? OFFSET ?;"
         )

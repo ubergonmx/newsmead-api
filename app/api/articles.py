@@ -1,15 +1,10 @@
 from sqlite3 import IntegrityError
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Query
-from app.database.asyncdb import AsyncDatabase
+from app.database.asyncdb import AsyncDatabase, get_db
 from app.models.article import Article, Filter
 
 router = APIRouter()
-
-
-async def get_db():
-    async with AsyncDatabase() as db:
-        yield db
 
 
 @router.get("/")
@@ -22,7 +17,7 @@ async def get_articles(
     sortBy: Optional[str] = Query(None),
     page: int = Query(1),
     page_size: int = Query(10),
-    db: AsyncDatabase = Depends(AsyncDatabase),
+    db: AsyncDatabase = Depends(get_db),
 ):
     filter = Filter(
         source=source,
@@ -32,24 +27,24 @@ async def get_articles(
         text=text,
         sortBy=sortBy,
     )
-    # try:
-    articles = await db.get_articles(filter, page, page_size)
-    return articles
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=str(e))
+    try:
+        articles = await db.get_articles(filter, page, page_size)
+        return articles
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{article_id}")
 async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
-    # try:
-    article = await db.get_article_by_id(article_id)
-    return article
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=str(e))
+    try:
+        article = await db.get_article_by_id(article_id)
+        return article
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/new")
-async def create_article(article: Article, db: AsyncDatabase = Depends(AsyncDatabase)):
+async def create_article(article: Article, db: AsyncDatabase = Depends(get_db)):
     try:
         await db.insert_data([article])
         return {"message": "Article created successfully"}
