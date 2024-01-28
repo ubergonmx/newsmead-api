@@ -1,9 +1,6 @@
 import sqlite3
 import os
 import logging
-import dotenv
-
-dotenv.load_dotenv()
 
 # Configure logging
 log = logging.getLogger(__name__)
@@ -51,7 +48,7 @@ def get_db():
 
 
 def db_path():
-    project_dir_name = os.getenv("PROJECT_DIR_NAME")
+    project_dir_name = "newsmead-api"
     current_file_path = os.path.abspath(__file__)
     path_components = current_file_path.split(os.sep)
     project_root_index = path_components.index(project_dir_name)
