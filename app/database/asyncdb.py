@@ -172,7 +172,25 @@ class AsyncDatabase:
 
     async def get_empty_articles(self, provider: str) -> list[Article]:
         query = "SELECT * FROM articles WHERE (author = '' OR body = '' OR image_url = '') AND source = ?;"
-        return Article().model_load(await self.fetch(query, (provider,)))
+        articles = await self.fetch(query, (provider,))
+        empty_articles = []
+        for article in articles:
+            empty_articles.append(
+                Article(
+                    article_id=article[0],
+                    date=article[1],
+                    category=article[2],
+                    source=article[3],
+                    title=article[4],
+                    author=article[5],
+                    url=article[6],
+                    body=article[7],
+                    image_url=article[8],
+                    read_time=article[9],
+                )
+            )
+        log.info(f"Empty articles ({provider}): {len(empty_articles)}")
+        return empty_articles
 
     async def delete_duplicates(self):
         query = """
@@ -234,7 +252,8 @@ class AsyncDatabase:
             (article.author, article.body, article.image_url, article.url)
             for article in articles
         ]
-        await self.run_query(query, params)
+        await self.run_query(query, params, is_many=True)
+        log.info(f"Updated {len(articles)} articles ({articles[0].source}).")
 
 
 async def get_db() -> AsyncDatabase:
