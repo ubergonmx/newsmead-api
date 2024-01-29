@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("/favicon.ico", include_in_schema=False)
 async def favicon():
-    return FileResponse(os.join.path(config.get_project_root(), "favicon.ico"))
+    return FileResponse(os.path.join(config.get_project_root(), "favicon.ico"))
 
 
 @router.get("/")
