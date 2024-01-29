@@ -36,21 +36,21 @@ async def scrape_all_providers():
 
 # Scheduler jobs
 jobs = [
-    (  # every 6th hour of the day (12AM, 6AM, 12PM, 6PM)
-        scrape_all_providers,
-        "cron",
-        {"hour": "*/6", "id": "scrape_all_providers"},
-    ),
+    # (  # every 6th hour of the day (12AM, 6AM, 12PM, 6PM)
+    #     scrape_all_providers,
+    #     "cron",
+    #     {"hour": "*/6", "id": "scrape_all_providers"},
+    # ),
     (  # every 6th hour and 30th minute of the day (12:30AM, 6:30AM, 12:30PM, 6:30PM)
         check_and_fix_empty_articles,
         "cron",
         {"hour": "*/6", "minute": 30, "id": "check_and_fix_empty_articles1"},
     ),
-    (  # every 5th hour and 30th minute of the day (11:30PM, 5:30AM, 11:30AM, 5:30PM)
-        check_and_fix_empty_articles,
-        "cron",
-        {"hour": "*/5", "minute": 30, "id": "check_and_fix_empty_articles2"},
-    ),
+    # (  # every 5th hour and 30th minute of the day (11:30PM, 5:30AM, 11:30AM, 5:30PM)
+    #     check_and_fix_empty_articles,
+    #     "cron",
+    #     {"hour": "*/5", "minute": 30, "id": "check_and_fix_empty_articles2"},
+    # ),
 ]
 
 
