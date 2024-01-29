@@ -1,11 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from .event_scheduler import (
-    check_and_fix_empty_articles,
-    schedule_jobs,
-    scrape_all_providers,
-)
 from app.core.recommender import Recommender
+from app.backend import event_scheduler
 import logging.config
 import dotenv
 import os
@@ -67,17 +63,9 @@ async def lifespan(app: FastAPI):
         log.info("Setting up ML model...")
         # app.recommender = Recommender()
 
-        # TBR: Scrape all providers
-        # log.info("Scraping all providers...")
-        # await scrape_all_providers()
-
-        # TBR: Check and fix empty articles
-        # log.info("Checking and fixing empty articles...")
-        # await check_and_fix_empty_articles()
-
         # Add scheduler jobs
         log.info("Adding scheduler jobs...")
-        app.scheduler = schedule_jobs()
+        app.scheduler = event_scheduler.schedule_jobs()
 
         yield
     finally:

@@ -2,7 +2,8 @@ from sqlite3 import IntegrityError
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Query
 from app.database.asyncdb import AsyncDatabase, get_db
-from app.models.article import Article, Filter
+from app.models.article import Filter
+import app.backend.event_scheduler as internals
 
 router = APIRouter()
 
@@ -38,7 +39,16 @@ async def get_articles(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/{article_id}")
+@router.get("/cafea")
+async def check_and_fix_empty_articles():
+    try:
+        await internals.check_and_fix_empty_articles()
+        return {"message": "Empty articles checked and fixed successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/id/{article_id}")
 async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
     try:
         article = await db.get_article_by_id(article_id)
