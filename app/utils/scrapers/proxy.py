@@ -1,12 +1,6 @@
-# Copyright (c) ubergonmx. All rights reserved.
-# Licensed under the BSD 2-Clause License.
-
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.chrome.options import Options
+import asyncio
+from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
-import time
 import logging
 import json
 
@@ -17,81 +11,79 @@ log = logging.getLogger(__name__)
 class ProxyScraper:
     def __init__(self, scrape_proxy_init=True):
         self.current_proxy_index = 0
-        self.chrome_options = Options()
-        self.chrome_options.add_argument("--headless=new")
-        self.chrome_options.add_argument("--no-sandbox")
-        self.chrome_options.add_argument("--disable-dev-shm-usage")
-        self.chrome_options.add_argument("--ignore-certificate-errors")
-        self.chrome_options.add_argument(
-            "user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0) Gecko/20100101 Firefox/39.0"
-        )
-        self.chrome_options.add_experimental_option(
-            "excludeSwitches", ["enable-logging"]
-        )
+        self.proxies = []
 
         if scrape_proxy_init:
-            self.proxies = self.scrape_proxies()
+            asyncio.run(self.scrape_proxies())
 
-    def get_next_proxy(self) -> dict[str, str]:
-        if self.proxies is None or len(self.proxies) == 0:
+    async def get_next_proxy(self) -> dict[str, str]:
+        if not self.proxies:
             return None
         proxy = self.proxies[self.current_proxy_index]
         self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
         return {"http://": proxy} if proxy.startswith("http:") else {"https://": proxy}
 
-    def scrape_url(self, url: str) -> str:
-        driver = webdriver.Chrome(options=self.chrome_options)
-        driver.get(url)
-        time.sleep(5)
-        html_content = driver.page_source
-        driver.quit()
-        return html_content
+    async def scrape_url(self, url: str) -> str:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            page = await browser.new_page()
+            try:
+                await page.goto(url)
+                await page.wait_for_load_state(
+                    "networkidle"
+                )  # Ensure page is fully loaded
+                html_content = await page.content()
+                return html_content
+            except Exception as e:
+                log.error(f"Error scraping URL: {e}")
+            finally:
+                await browser.close()
 
-    def scrape_proxies(self) -> list[str]:
-        driver = webdriver.Chrome(options=self.chrome_options)
-        # Proxy provider: SPYS.one
-        spys_url = "https://spys.one/free-proxy-list/PH/"
-        driver.get(spys_url)
+    async def scrape_proxies(self) -> list[str]:
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--ignore-certificate-errors",
+                    "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0) Gecko/20100101 Firefox/39.0",
+                ],
+            )
+            page = await browser.new_page()
+            try:
+                await page.goto("https://spys.one/free-proxy-list/PH/")
+                await page.wait_for_load_state("networkidle")
+                html_content = await page.content()
 
-        # Wait for the page to load (adjust the sleep time if needed)
-        time.sleep(5)
+                soup = BeautifulSoup(html_content, "html.parser")
+                proxy_table = soup.find_all("table")[2]
+                tbody = proxy_table.find("tbody")
+                rows = tbody.find_all(
+                    "tr", {"onmouseover": "this.style.background='#002424'"}
+                )
 
-        # Extract the HTML content after the page has loaded
-        html_content = driver.page_source
+                proxies = []
+                for row in rows:
+                    columns = row.find_all("td")
+                    ip = columns[0].text.strip()
+                    proxy_type = columns[1].text.strip().split(" ")[0].lower()
+                    proxy = f"{proxy_type}://{ip}"
+                    proxies.append(proxy)
 
-        # Parse the HTML with BeautifulSoup
-        soup = BeautifulSoup(html_content, "html.parser")
-
-        # Extract proxies from the page as before
-        proxies = []
-
-        # Find the 3rd table
-        proxy_table = soup.find_all("table")[2]
-
-        # Get tbody in table
-        tbody = proxy_table.find("tbody")
-
-        # Get all rows with onmouseover property
-        rows = tbody.find_all("tr", {"onmouseover": "this.style.background='#002424'"})
-
-        for row in rows:
-            columns = row.find_all("td")
-            ip = columns[0].text.strip()
-            proxy_type = columns[1].text.strip().split(" ")[0].lower()
-            proxy = f"{proxy_type}://{ip}"
-            proxies.append(proxy)
-
-        # Close the browser window
-        driver.quit()
-
-        # Remove "socks" proxies
-        proxies = [proxy for proxy in proxies if "socks" not in proxy]
-        log.info(f"Scraped {len(proxies)} proxies: {json.dumps(proxies, indent=2)}")
-        return proxies
+                proxies = [proxy for proxy in proxies if "socks" not in proxy]
+                log.info(
+                    f"Scraped {len(proxies)} proxies: {json.dumps(proxies, indent=2)}"
+                )
+                self.proxies = proxies
+            except Exception as e:
+                log.error(f"Error scraping proxies: {e}")
+            finally:
+                await browser.close()
 
     def refresh_proxies(self):
         log.info("Refreshing proxies...")
-        self.proxies = self.scrape_proxies()
+        asyncio.run(self.scrape_proxies())
         self.current_proxy_index = 0
 
     def get_proxies(self):
