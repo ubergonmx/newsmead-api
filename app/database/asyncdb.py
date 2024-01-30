@@ -1,5 +1,6 @@
 from typing import Any, Optional
 from app.models.article import Article, Filter
+from app.utils.nlp.lang import Lang
 import asyncio
 import os
 import aiosqlite
@@ -183,7 +184,13 @@ class AsyncDatabase:
         params.extend([page_size, offset])
 
         results = await self.fetch(query, params)
-        articles = [article for article in self._set_articles(results) if article.body]
+        # Filter out non-English articles and articles with empty bodies
+        lang = Lang()
+        articles = [
+            article
+            for article in self._set_articles(results)
+            if article.body and lang.is_english(article.title)
+        ]
         return articles
 
     async def get_empty_articles(self, provider: str) -> list[Article]:
