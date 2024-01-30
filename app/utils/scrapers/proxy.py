@@ -1,4 +1,3 @@
-import asyncio
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
 import logging
@@ -9,12 +8,12 @@ log = logging.getLogger(__name__)
 
 
 class ProxyScraper:
-    def __init__(self, scrape_proxy_init=True):
+    def __init__(self):
         self.current_proxy_index = 0
         self.proxies = []
 
-        if scrape_proxy_init:
-            asyncio.run(self.scrape_proxies())
+    async def init(self):
+        await self.scrape_proxies()
 
     async def get_next_proxy(self) -> dict[str, str]:
         if not self.proxies:
@@ -80,11 +79,6 @@ class ProxyScraper:
                 log.error(f"Error scraping proxies: {e}")
             finally:
                 await browser.close()
-
-    def refresh_proxies(self):
-        log.info("Refreshing proxies...")
-        asyncio.run(self.scrape_proxies())
-        self.current_proxy_index = 0
 
     def get_proxies(self):
         return self.proxies
