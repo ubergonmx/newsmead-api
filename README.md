@@ -34,7 +34,13 @@ List of **GET** endpoints:
 pip install -r requirements.txt
 ```
 
-2. Run server
+2. Setup Playwright
+
+```bash
+playwright install
+```
+
+3. Run server
 
 ```bash
 uvicorn app.main:app --reload
