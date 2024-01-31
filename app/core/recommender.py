@@ -65,8 +65,8 @@ class Recommender:
         return " ".join(words[:limit])
 
     async def write_chunk_to_tsv(self, chunk, filename):
-        async with aiofiles.open(filename, "a", encoding="utf-8") as f:
-            writer = AsyncWriter(f, delimiter="\t", newline="")
+        async with aiofiles.open(filename, "a", encoding="utf-8", newline="") as f:
+            writer = AsyncWriter(f, delimiter="\t")
             for row in chunk:
                 # article_id:0, category:2, title:4, body:7, url:6
                 await writer.writerow(
