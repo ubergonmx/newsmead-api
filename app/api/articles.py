@@ -58,7 +58,9 @@ async def check_and_fix_empty_articles(bg: BackgroundTasks, request: Request):
 
 
 @router.get("/scrapeall", include_in_schema=False)
-async def scrape_all_providers(key: str, bg: BackgroundTasks, request: Request):
+async def scrape_all_providers(
+    bg: BackgroundTasks, request: Request, key: str = Query(None)
+):
     if key != os.getenv("SECRET_KEY"):
         raise HTTPException(status_code=403, detail="Invalid keyphrase")
     await add_task(bg, internals.scrape_all_providers, request.app.state.recommender)
