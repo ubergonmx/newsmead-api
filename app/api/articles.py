@@ -1,11 +1,13 @@
 from sqlite3 import IntegrityError
-from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends, Query
+from typing import Callable, Optional
+from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
 from app.database.asyncdb import AsyncDatabase, get_db
 from app.models.article import Filter
 import app.backend.event_scheduler as internals
+import logging
 
 router = APIRouter()
+log = logging.getLogger(__name__)
 
 
 @router.get("/")
@@ -39,22 +41,26 @@ async def get_articles(
         raise HTTPException(status_code=500, detail=str(e))
 
 
+async def add_bg_task(background_tasks: BackgroundTasks, func: Callable):
+    async def wrapper():
+        try:
+            await func()
+        except Exception as e:
+            log.error(f"Error in background task: {e}")
+
+    background_tasks.add_task(wrapper)
+
+
 @router.get("/cafea", include_in_schema=False)
 async def check_and_fix_empty_articles():
-    try:
-        await internals.check_and_fix_empty_articles()
-        return {"message": "Empty articles checked and fixed successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    await add_bg_task(internals.check_and_fix_empty_articles)
+    return {"message": "Empty articles check started"}
 
 
 @router.get("/scrapeall", include_in_schema=False)
 async def scrape_all_providers():
-    try:
-        await internals.scrape_all_providers()
-        return {"message": "All providers scraped successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    await add_bg_task(internals.scrape_all_providers)
+    return {"message": "Scrape all providers started"}
 
 
 @router.get("/id/{article_id}")
