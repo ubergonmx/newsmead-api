@@ -33,8 +33,8 @@ def unzip(filepath: str, target_dir: str) -> None:
 
 if __name__ == "__main__":
     url = "https://filebin.net/mtdol51a7im526te/pretrained.zip"
-    filepath = os.path.join("recommender_utils", "pretrained.zip")
-    target_dir = os.path.join("recommender_utils")
+    filepath = os.path.join(os.getcwd(), "recommender_utils", "pretrained.zip")
+    target_dir = os.path.join(os.getcwd(), "recommender_utils")
     os.makedirs(target_dir, exist_ok=True)
     download(url, filepath)
     unzip(filepath, target_dir)
