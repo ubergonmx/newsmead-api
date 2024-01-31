@@ -16,13 +16,6 @@ class ProxyScraper:
     async def init(self):
         await self.scrape_proxies()
 
-    async def get_next_proxy(self) -> dict[str, str]:
-        if not self.proxies:
-            return None
-        proxy = self.proxies[self.current_proxy_index]
-        self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
-        return {"http://": proxy} if proxy.startswith("http:") else {"https://": proxy}
-
     async def scrape_url(self, url: str) -> str:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
@@ -80,6 +73,13 @@ class ProxyScraper:
                 log.error(f"Error scraping proxies: {e}")
             finally:
                 await browser.close()
+
+    def get_next_proxy(self) -> dict[str, str]:
+        if not self.proxies:
+            return None
+        proxy = self.proxies[self.current_proxy_index]
+        self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
+        return {"http://": proxy} if proxy.startswith("http:") else {"https://": proxy}
 
     def get_proxies(self):
         return self.proxies
