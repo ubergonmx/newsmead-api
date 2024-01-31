@@ -11,9 +11,11 @@
         "hparams",
         "httpx",
         "impr",
+        "keyphrase",
         "logviewer",
         "manilabulletin",
         "NAML",
+        "networkidle",
         "newsinfo",
         "newsmead",
         "newsrec",
@@ -31,6 +33,8 @@
         "useragent",
         "uvicorn",
         "vecs",
+        "venv",
+        "virtualenv",
         "webcrawler"
     ]
 }
