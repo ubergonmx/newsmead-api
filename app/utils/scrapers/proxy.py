@@ -13,9 +13,6 @@ class ProxyScraper:
         self.current_proxy_index = 0
         self.proxies = []
 
-    async def init(self):
-        await self.scrape_proxies()
-
     async def scrape_url(self, url: str) -> str:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)

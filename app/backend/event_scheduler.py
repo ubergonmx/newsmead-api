@@ -16,7 +16,8 @@ log = logging.getLogger(__name__)
 async def check_and_fix_empty_articles(recommender: "Recommender"):
     log.info("Checking and fixing empty articles...")
     proxy = ProxyScraper()
-    await proxy.init()
+    while proxy.get_proxies() == []:
+        await proxy.scrape_proxies()
     async with AsyncDatabase() as db:
         for provider in news.Provider:
             scraper_strategy = news.get_scraper_strategy(provider)
@@ -33,7 +34,8 @@ async def check_and_fix_empty_articles(recommender: "Recommender"):
 async def scrape_all_providers(recommender: "Recommender"):
     log.info("Scraping all providers...")
     proxy = ProxyScraper()
-    await proxy.init()
+    while proxy.get_proxies() == []:
+        await proxy.scrape_proxies()
     async with AsyncDatabase() as db:
         for provider in news.Provider:
             scraper_strategy = news.get_scraper_strategy(provider)
