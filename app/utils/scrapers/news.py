@@ -19,6 +19,7 @@ import readtime
 import logging
 import feedparser
 import re
+import aiofiles
 
 # Configure logging
 log = logging.getLogger(__name__)
@@ -226,8 +227,8 @@ class ScraperStrategy(ABC):
 
         os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-        with open(filename, "wb") as f:
-            f.write(rss_content)
+        async with aiofiles.open(filename, "wb") as f:
+            await f.write(rss_content)
 
         log.info(f"Saved RSS feed to {filename}")
 
@@ -241,8 +242,10 @@ class ScraperStrategy(ABC):
             f"{self.config.provider_name}-{category.value}-{current_hr_min}.xml",
         )
 
-        with open(filename, "wb") as f:
-            f.write(webcrawler_content)
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+        async with aiofiles.open(filename, "wb") as f:
+            await f.write(webcrawler_content)
 
         log.info(f"Saved webcrawler feed to {filename}")
 
