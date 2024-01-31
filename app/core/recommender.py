@@ -49,9 +49,6 @@ class Recommender:
         self.model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
         log.info(f"Model setup time: {time.time() - start_time}")
 
-    # def load_news(self, news_file: str = None):
-    #     self.model.news_vecs = self.model.run_news(news_file or self.news_file)
-
     def limit_words(self, text: str, limit: int = None) -> str:
         limit = limit or self.model.hparams.body_size
         clean_text = (
@@ -101,21 +98,25 @@ class Recommender:
     async def load_news(self, news_file: str = None):
         loop = asyncio.get_event_loop()
         with ThreadPoolExecutor() as pool:
+            log.info(f"Loading news...")
             await loop.run_in_executor(
                 pool, self.model.run_news, news_file or self.news_file
             )
+
+    def load_news_sync(self, news_file: str = None):
+        log.info(f"Loading news...")
+        self.model.news_vecs = self.model.run_news(news_file or self.news_file)
 
     async def predict(self, behavior: str) -> list[str]:
         loop = asyncio.get_event_loop()
         with ThreadPoolExecutor() as pool:
             result = await loop.run_in_executor(pool, self._predict, behavior)
-
         return result
 
     def _predict(self, behavior: str) -> list[str]:
         behavior_file = None
         try:
-            print("start predicting...")
+            log.info(f"Start predicting...")
             # Create a temporary file called behavior-{random string}.tsv
             with tempfile.NamedTemporaryFile(
                 mode="w",
@@ -150,7 +151,7 @@ class Recommender:
             merge = {r: i for r, i in zip(pred_rank, impressions)}
             ranked_articles = dict(sorted(merge.items()))
             articles = list(ranked_articles.values())
-            log.info(f"predicting time: {time.time() - start_time}")
+            log.info(f"Prediction runtime: {time.time() - start_time}")
             return articles
         finally:
             # Delete the temporary file
