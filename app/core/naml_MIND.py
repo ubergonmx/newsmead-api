@@ -135,6 +135,18 @@ if not os.path.exists(yaml_file):
         mind_utils,
     )
 
+import yaml
+
+# Load YAML data from file
+with open(yaml_file, "r") as file:
+    yaml_data = yaml.safe_load(file)
+
+# Update vert_num to 19
+yaml_data["data"]["vert_num"] = 19
+
+# Save the updated YAML data back to the file
+with open(yaml_file, "w") as file:
+    yaml.dump(yaml_data, file)
 
 # ## Create hyper-parameters
 
