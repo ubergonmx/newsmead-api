@@ -5,6 +5,7 @@ from app.database.asyncdb import AsyncDatabase, get_db
 from app.models.article import Filter
 import app.backend.event_scheduler as internals
 import logging
+import os
 
 router = APIRouter()
 log = logging.getLogger(__name__)
@@ -58,7 +59,9 @@ async def check_and_fix_empty_articles(bg: BackgroundTasks):
 
 
 @router.get("/scrapeall", include_in_schema=False)
-async def scrape_all_providers(bg: BackgroundTasks):
+async def scrape_all_providers(key: str, bg: BackgroundTasks):
+    if key != os.getenv("SECRET_KEY"):
+        raise HTTPException(status_code=403, detail="Invalid keyphrase")
     await add_task(bg, internals.scrape_all_providers)
     return {"message": "Scrape all providers started"}
 
