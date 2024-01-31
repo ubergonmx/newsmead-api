@@ -37,7 +37,7 @@ class Lang:
         result = self.detector.compute_language_confidence_values(text)
         return {"lang": result[0].language.name, "score": result[0].value}
 
-    def is_en(self, text) -> bool:
+    def is_english(self, text) -> bool:
         """
         Returns True if the text is in English.
         """
