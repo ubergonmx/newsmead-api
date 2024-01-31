@@ -62,8 +62,11 @@ class AsyncDatabase:
             await self.conn.rollback()
             raise e
 
+    async def execute_query(self, query, params=None):
+        return await self.conn.execute(query, params)
+
     async def fetch(self, query, params=None):
-        cursor = await self.conn.execute(query, params)
+        cursor = await self.execute_query(query, params)
         return await cursor.fetchall()
 
     async def table_exists(self, table_name):
@@ -192,6 +195,10 @@ class AsyncDatabase:
             if article.body and lang.is_english(article.title)
         ]
         return articles
+
+    async def get_all_articles_cursor(self) -> aiosqlite.Cursor:
+        query = "SELECT * FROM articles;"
+        return await self.execute_query(query)
 
     async def get_empty_articles(self, provider: str) -> list[Article]:
         query = "SELECT * FROM articles WHERE (author = '' OR author IS NULL OR body = '' OR body IS NULL OR image_url = '' OR image_url IS NULL) AND source = ?;"
