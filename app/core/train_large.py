@@ -112,8 +112,9 @@ print(f"Model saving time: {time.time() - start_time}")
 print("Moving model to recommender_utils...")
 start_time = time.time()
 
-# Move pretrained and utils folder from tmp_dir to recommender_utils
-rec_path = os.path.join(os.getcwd(), "recommender_utils")
+# Move pretrained and utils folder from tmp_dir to script_loc/recommender_utils
+script_dir = os.path.dirname(os.path.abspath(__file__))
+rec_path = os.path.join(script_dir, "recommender_utils")
 os.makedirs(rec_path, exist_ok=True)
 for folder in ["model", "utils"]:
     shutil.move(os.path.join(tmp_dir, folder), os.path.join(rec_path, folder))
