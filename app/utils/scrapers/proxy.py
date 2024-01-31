@@ -1,5 +1,6 @@
 from playwright.async_api import async_playwright
 from bs4 import BeautifulSoup
+from fake_useragent import UserAgent
 import logging
 import json
 
@@ -46,7 +47,7 @@ class ProxyScraper:
                     "--no-sandbox",
                     "--disable-dev-shm-usage",
                     "--ignore-certificate-errors",
-                    "--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:39.0) Gecko/20100101 Firefox/39.0",
+                    f"--user-agent={UserAgent().chrome}",
                 ],
             )
             page = await browser.new_page()
