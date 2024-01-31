@@ -50,6 +50,7 @@ class Recommender:
 
     # def load_news(self, news_file: str = None):
     #     self.model.news_vecs = self.model.run_news(news_file or self.news_file)
+    # async def save_news(self, )
 
     async def load_news(self, news_file: str = None):
         loop = asyncio.get_event_loop()
