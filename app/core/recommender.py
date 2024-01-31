@@ -1,5 +1,6 @@
 from concurrent.futures import ThreadPoolExecutor
 from app.database.asyncdb import AsyncDatabase
+from aiocsv import AsyncWriter
 import asyncio
 import logging
 import os
@@ -8,7 +9,6 @@ import time
 import tempfile
 import app.backend.config as config
 import aiofiles
-import csv
 
 # Suppress C++ level warnings.
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -54,7 +54,7 @@ class Recommender:
 
     async def write_chunk_to_tsv(self, chunk, filename):
         async with aiofiles.open(filename, "a") as f:
-            writer = csv.writer(f, delimiter="\t")
+            writer = AsyncWriter(f, delimiter="\t")
             await writer.writerows(chunk)
 
     async def save_news(
