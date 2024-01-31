@@ -104,7 +104,7 @@ print("Saving model...")
 start_time = time.time()
 
 # Save the model
-model_path = os.path.join(tmp_dir, "model")
+model_path = os.path.join(tmp_dir, "pretrained")
 os.makedirs(model_path, exist_ok=True)
 model.model.save_weights(os.path.join(model_path, "naml_ckpt"))
 
@@ -116,7 +116,7 @@ start_time = time.time()
 script_dir = os.path.dirname(os.path.abspath(__file__))
 rec_path = os.path.join(script_dir, "recommender_utils")
 os.makedirs(rec_path, exist_ok=True)
-for folder in ["model", "utils"]:
+for folder in ["pretrained", "utils"]:
     shutil.move(os.path.join(tmp_dir, folder), os.path.join(rec_path, folder))
 print(f"Model moving time: {time.time() - start_time}")
 
