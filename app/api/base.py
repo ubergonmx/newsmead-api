@@ -33,10 +33,10 @@ def get_proxies() -> dict[str, list[str]]:
 # Refactor this endpoint
 @router.get("/download-db")
 async def download_db():
-    db_path = "newsmead.sqlite"
+    db_path = os.path.join(config.get_project_root(), os.getenv("DB_NAME"))
     if not os.path.exists(db_path):
         raise HTTPException(status_code=404, detail="Database not found")
 
     return FileResponse(
-        db_path, media_type="application/octet-stream", filename="newsmead.sqlite"
+        db_path, media_type="application/octet-stream", filename=os.getenv("DB_NAME")
     )
