@@ -39,11 +39,20 @@ async def get_articles(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/cafea")
+@router.get("/cafea", include_in_schema=False)
 async def check_and_fix_empty_articles():
     try:
         await internals.check_and_fix_empty_articles()
         return {"message": "Empty articles checked and fixed successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/scrapeall", include_in_schema=False)
+async def scrape_all_providers():
+    try:
+        await internals.scrape_all_providers()
+        return {"message": "All providers scraped successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
