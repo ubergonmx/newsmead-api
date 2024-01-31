@@ -7,11 +7,9 @@ import os
 
 router = APIRouter()
 
-secret_keyphrase = "n3w5me@d-s3cret"
-
 
 def verify_keyphrase(keyphrase: str = Header(...)):
-    if keyphrase != secret_keyphrase:
+    if keyphrase != os.getenv("SECRET_KEY"):
         raise HTTPException(status_code=403, detail="Invalid keyphrase")
     return keyphrase
 
