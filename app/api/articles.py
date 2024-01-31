@@ -44,10 +44,7 @@ async def get_articles(
 
 async def add_task(background_tasks: BackgroundTasks, func: Callable, *args, **kwargs):
     async def wrapper():
-        try:
-            await func(*args, **kwargs)
-        except Exception as e:
-            log.error(f"Error in background task: {e}")
+        await func(*args, **kwargs)
 
     background_tasks.add_task(wrapper)
 
