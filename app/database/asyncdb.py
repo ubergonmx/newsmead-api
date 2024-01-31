@@ -170,7 +170,7 @@ class AsyncDatabase:
 
         if filter.text is not None:
             conditions.append("title LIKE ? OR body LIKE ?")
-            params.append(f"%{filter.text}%", f"%{filter.text}%")
+            params.extend([f"%{filter.text}%", f"%{filter.text}%"])
 
         conditions_sql = " AND ".join(conditions)
         sort_order = "RANDOM()" if filter.sortBy == "recent" else "date DESC"
