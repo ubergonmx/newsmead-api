@@ -2,6 +2,10 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pytz import timezone
 from app.utils.scrapers.proxy import ProxyScraper
 from app.database.asyncdb import AsyncDatabase
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.core.recommender import Recommender
 import app.utils.scrapers.news as news
 import os
 import logging.config
@@ -9,7 +13,7 @@ import logging.config
 log = logging.getLogger(__name__)
 
 
-async def check_and_fix_empty_articles():
+async def check_and_fix_empty_articles(recommender: "Recommender"):
     log.info("Checking and fixing empty articles...")
     proxy = ProxyScraper()
     await proxy.init()
@@ -22,9 +26,10 @@ async def check_and_fix_empty_articles():
                 continue
             articles = await news_scraper.scrape_articles(empty_articles, proxy)
             await db.update_empty_articles(articles)
+            await recommender.save_news(db)
 
 
-async def scrape_all_providers():
+async def scrape_all_providers(recommender: "Recommender"):
     log.info("Scraping all providers...")
     proxy = ProxyScraper()
     await proxy.init()
@@ -34,6 +39,7 @@ async def scrape_all_providers():
             news_scraper = news.NewsScraper(scraper_strategy)
             articles = await news_scraper.scrape_all(proxy)
             await db.insert_articles(articles)
+            await recommender.save_news(db)
 
 
 # Scheduler jobs
@@ -48,19 +54,14 @@ jobs = [
         "cron",
         {"hour": "*/6", "minute": 30, "id": "check_and_fix_empty_articles1"},
     ),
-    # (  # every 5th hour and 30th minute of the day (11:30PM, 5:30AM, 11:30AM, 5:30PM)
-    #     check_and_fix_empty_articles,
-    #     "cron",
-    #     {"hour": "*/5", "minute": 30, "id": "check_and_fix_empty_articles2"},
-    # ),
 ]
 
 
 # Schedule jobs
-def schedule_jobs():
+def schedule_jobs(recommender: "Recommender"):
     scheduler = AsyncIOScheduler(timezone=timezone(os.getenv("TIMEZONE")))
     for job in jobs:
         func, trigger, kwargs = job
-        scheduler.add_job(func, trigger, **kwargs)
+        scheduler.add_job(func, trigger, args=[recommender], **kwargs)
     scheduler.start()
     return scheduler
