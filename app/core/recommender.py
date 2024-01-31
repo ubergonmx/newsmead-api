@@ -142,7 +142,3 @@ class Recommender:
         finally:
             # Delete the temporary file
             os.remove(behavior_file)
-
-
-# Setup inputs
-impression = "1\tU2000505\t11/15/2019 6:02:42 AM\tN22427 N15072 N16699 N22024 N22104 N15636\tN26508-0 N20150-1"
