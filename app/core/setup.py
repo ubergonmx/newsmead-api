@@ -31,12 +31,20 @@ def unzip(filepath: str, target_dir: str) -> None:
         zip_ref.extractall(target_dir)
 
 
+def cleanup(filepath: str) -> None:
+    os.remove(filepath)
+
+
+def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
+    download(url, filepath)
+    unzip(filepath, target_dir)
+
+
 if __name__ == "__main__":
     url = "https://filebin.net/mtdol51a7im526te/pretrained.zip"
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, "recommender_utils", "pretrained.zip")
     target_dir = os.path.join(script_dir, "recommender_utils")
     print(filepath)
-    # os.makedirs(target_dir, exist_ok=True)
-    # download(url, filepath)
-    # unzip(filepath, target_dir)
+    download_and_unzip(url, filepath, target_dir)
+    cleanup(filepath)
