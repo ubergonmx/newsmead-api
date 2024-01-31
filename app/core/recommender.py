@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+from app.database.asyncdb import AsyncDatabase
 import asyncio
 import logging
 import os
@@ -6,6 +7,8 @@ import numpy as np
 import time
 import tempfile
 import app.backend.config as config
+import aiofiles
+import csv
 
 # Suppress C++ level warnings.
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -22,10 +25,8 @@ from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
 class Recommender:
     def __init__(self):
         start_time = time.time()
-
-        self.data_path = os.path.join(
-            config.get_project_root(), "app", "core", "recommender_utils"
-        )
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        self.data_path = os.path.join(current_dir, "recommender_utils")
         wordEmb_file = os.path.join(self.data_path, "utils", "embedding_all.npy")
         userDict_file = os.path.join(self.data_path, "utils", "uid2index.pkl")
         wordDict_file = os.path.join(self.data_path, "utils", "word_dict_all.pkl")
@@ -50,7 +51,24 @@ class Recommender:
 
     # def load_news(self, news_file: str = None):
     #     self.model.news_vecs = self.model.run_news(news_file or self.news_file)
-    # async def save_news(self, )
+
+    async def write_chunk_to_tsv(chunk, filename):
+        async with aiofiles.open(filename, "a") as f:
+            writer = csv.writer(f, delimiter="\t")
+            await writer.writerows(chunk)
+
+    async def save_news(
+        self, db: AsyncDatabase, chunk_size: int = 1000, news_file: str = None
+    ):
+        if os.path.exists(news_file or self.news_file):
+            os.remove(news_file or self.news_file)
+        cursor = await db.get_all_articles_cursor()
+        while True:
+            chunk = await cursor.fetchmany(chunk_size)
+            if not chunk:
+                break
+
+            await self.write_chunk_to_tsv(chunk, news_file or self.news_file)
 
     async def load_news(self, news_file: str = None):
         loop = asyncio.get_event_loop()
