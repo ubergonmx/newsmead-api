@@ -52,7 +52,7 @@ class Recommender:
     # def load_news(self, news_file: str = None):
     #     self.model.news_vecs = self.model.run_news(news_file or self.news_file)
 
-    async def write_chunk_to_tsv(chunk, filename):
+    async def write_chunk_to_tsv(self, chunk, filename):
         async with aiofiles.open(filename, "a") as f:
             writer = csv.writer(f, delimiter="\t")
             await writer.writerows(chunk)
@@ -60,15 +60,16 @@ class Recommender:
     async def save_news(
         self, db: AsyncDatabase, chunk_size: int = 1000, news_file: str = None
     ):
-        if os.path.exists(news_file or self.news_file):
-            os.remove(news_file or self.news_file)
+        news_file = news_file or self.news_file
+        if os.path.exists(news_file):
+            os.remove(news_file)
         cursor = await db.get_all_articles_cursor()
         while True:
             chunk = await cursor.fetchmany(chunk_size)
             if not chunk:
                 break
 
-            await self.write_chunk_to_tsv(chunk, news_file or self.news_file)
+            await self.write_chunk_to_tsv(chunk, news_file)
 
     async def load_news(self, news_file: str = None):
         loop = asyncio.get_event_loop()
