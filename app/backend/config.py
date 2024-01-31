@@ -62,6 +62,7 @@ async def lifespan(app: FastAPI):
         # Setup ML model
         log.info("Setting up ML model...")
         app.state.recommender = Recommender()
+        app.state.recommender.load_news()
 
         # Add scheduler jobs
         log.info("Adding scheduler jobs...")
