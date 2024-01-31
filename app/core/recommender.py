@@ -95,25 +95,11 @@ class Recommender:
 
         log.info(f"Saved news to {news_file}")
 
-    async def load_news(self, news_file: str = None):
-        loop = asyncio.get_event_loop()
-        with ThreadPoolExecutor() as pool:
-            log.info(f"Loading news...")
-            await loop.run_in_executor(
-                pool, self.model.run_news, news_file or self.news_file
-            )
-
-    def load_news_sync(self, news_file: str = None):
+    def load_news(self, news_file: str = None):
         log.info(f"Loading news...")
         self.model.news_vecs = self.model.run_news(news_file or self.news_file)
 
-    async def predict(self, behavior: str) -> list[str]:
-        loop = asyncio.get_event_loop()
-        with ThreadPoolExecutor() as pool:
-            result = await loop.run_in_executor(pool, self._predict, behavior)
-        return result
-
-    def _predict(self, behavior: str) -> list[str]:
+    def predict(self, behavior: str) -> list[str]:
         behavior_file = None
         try:
             log.info(f"Start predicting...")
