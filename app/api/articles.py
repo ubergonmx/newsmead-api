@@ -41,7 +41,7 @@ async def get_articles(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-async def add_bg_task(background_tasks: BackgroundTasks, func: Callable):
+async def add_task(background_tasks: BackgroundTasks, func: Callable):
     async def wrapper():
         try:
             await func()
@@ -52,14 +52,14 @@ async def add_bg_task(background_tasks: BackgroundTasks, func: Callable):
 
 
 @router.get("/cafea", include_in_schema=False)
-async def check_and_fix_empty_articles():
-    await add_bg_task(internals.check_and_fix_empty_articles)
+async def check_and_fix_empty_articles(bg: BackgroundTasks):
+    await add_task(bg, internals.check_and_fix_empty_articles)
     return {"message": "Empty articles check started"}
 
 
 @router.get("/scrapeall", include_in_schema=False)
-async def scrape_all_providers():
-    await add_bg_task(internals.scrape_all_providers)
+async def scrape_all_providers(bg: BackgroundTasks):
+    await add_task(bg, internals.scrape_all_providers)
     return {"message": "Scrape all providers started"}
 
 
