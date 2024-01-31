@@ -165,3 +165,6 @@ logs/
 sources/
 recommender/model/
 pretrained/
+news.tsv
+behaviors.tsv
+*.zip
