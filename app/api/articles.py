@@ -54,7 +54,7 @@ async def check_and_fix_empty_articles(bg: BackgroundTasks, request: Request):
     await add_task(
         bg, internals.check_and_fix_empty_articles, request.app.state.recommender
     )
-    return {"message": "Empty articles check started"}
+    return {"message": "Check and fix empty articles started"}
 
 
 @router.get("/scrapeall", include_in_schema=False)
