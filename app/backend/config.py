@@ -61,17 +61,14 @@ async def lifespan(app: FastAPI):
 
         # Setup ML model
         log.info("Setting up ML model...")
-        # app.recommender = Recommender()
+        app.state.recommender = Recommender()
 
         # Add scheduler jobs
         log.info("Adding scheduler jobs...")
-        app.scheduler = event_scheduler.schedule_jobs()
+        app.state.scheduler = event_scheduler.schedule_jobs(app.state.recommender)
 
         yield
     finally:
-        # Tear down ML model
-        log.info("Tearing down ML model...")
-
         # Shutdown scheduler
         log.info("Shutting down scheduler...")
-        app.scheduler.shutdown()
+        app.state.scheduler.shutdown()
