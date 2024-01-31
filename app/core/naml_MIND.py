@@ -143,6 +143,7 @@ with open(yaml_file, "r") as file:
 
 # Update vert_num to 19
 yaml_data["data"]["vert_num"] = 19
+yaml_data["data"]["subvert_num"] = 290
 
 # Save the updated YAML data back to the file
 with open(yaml_file, "w") as file:
