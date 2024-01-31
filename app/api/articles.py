@@ -1,6 +1,6 @@
 from sqlite3 import IntegrityError
 from typing import Callable, Optional
-from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks, Request
 from app.database.asyncdb import AsyncDatabase, get_db
 from app.models.article import Filter
 import app.backend.event_scheduler as internals
@@ -42,10 +42,10 @@ async def get_articles(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-async def add_task(background_tasks: BackgroundTasks, func: Callable):
+async def add_task(background_tasks: BackgroundTasks, func: Callable, *args, **kwargs):
     async def wrapper():
         try:
-            await func()
+            await func(*args, **kwargs)
         except Exception as e:
             log.error(f"Error in background task: {e}")
 
@@ -53,16 +53,18 @@ async def add_task(background_tasks: BackgroundTasks, func: Callable):
 
 
 @router.get("/cafea", include_in_schema=False)
-async def check_and_fix_empty_articles(bg: BackgroundTasks):
-    await add_task(bg, internals.check_and_fix_empty_articles)
+async def check_and_fix_empty_articles(bg: BackgroundTasks, request: Request):
+    await add_task(
+        bg, internals.check_and_fix_empty_articles, request.app.state.recommender
+    )
     return {"message": "Empty articles check started"}
 
 
 @router.get("/scrapeall", include_in_schema=False)
-async def scrape_all_providers(key: str, bg: BackgroundTasks):
+async def scrape_all_providers(key: str, bg: BackgroundTasks, request: Request):
     if key != os.getenv("SECRET_KEY"):
         raise HTTPException(status_code=403, detail="Invalid keyphrase")
-    await add_task(bg, internals.scrape_all_providers)
+    await add_task(bg, internals.scrape_all_providers, request.app.state.recommender)
     return {"message": "Scrape all providers started"}
 
 
