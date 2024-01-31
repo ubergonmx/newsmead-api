@@ -80,32 +80,38 @@ class ScraperStrategy(ABC):
             return scraped_articles
         else:
             log.error(f"Category mapping not defined for {self._cname()}: {category}")
+            return []
 
     async def scrape_articles(
-        self, articles: list[Article], proxy_scraper=None
+        self, articles: list[Article], proxy_scraper=None, chunk_size=25
     ) -> list[Article]:
-        tasks = [self.scrape_article(article) for article in articles]
-        results = await asyncio.gather(*tasks)
-
         success = []
         failed = []
-        for result in results:
-            if result[0]:
-                success.append(result[1])
-            else:
-                failed.append(result[1])
+
+        for i in range(0, len(articles), chunk_size):
+            tasks = [
+                self.scrape_article(article) for article in articles[i : i + chunk_size]
+            ]
+            results = await asyncio.gather(*tasks)
+
+            for result in results:
+                if result[0]:
+                    success.append(result[1])
+                else:
+                    failed.append(result[1])
 
         if len(failed) > 0:
             log.info(
                 f"{self._cname()} failed to scrape {len(failed)} articles. Retrying..."
             )
-            tasks = [
-                self.scrape_article_with_retries(article, proxy_scraper)
-                for article in failed
-            ]
-            results = await asyncio.gather(*tasks)
-            for result in results:
-                success.append(result[1])
+            for i in range(0, len(failed), chunk_size):
+                tasks = [
+                    self.scrape_article_with_retries(article, proxy_scraper)
+                    for article in failed[i : i + chunk_size]
+                ]
+                results = await asyncio.gather(*tasks)
+                for result in results:
+                    success.append(result[1])
 
         log.info(f"{self._cname()} scraped {len(success)} articles")
         return success
