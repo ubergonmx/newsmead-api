@@ -68,7 +68,8 @@ class ScraperStrategy(ABC):
         self, category: Category, proxy_scraper=None
     ) -> list[Article]:
         if category in self.config.category_mapping:
-            articles = await self.fetch_and_parse_rss(category)
+            proxy = proxy_scraper.get_next_proxy()
+            articles = await self.fetch_and_parse_rss(category, proxy=proxy)
             async with AsyncDatabase() as db:
                 filtered_articles = await db.filter_new_urls(
                     articles, category=category.value
@@ -150,9 +151,11 @@ class ScraperStrategy(ABC):
             article.author = (
                 author
                 if author is not None
-                else news_article.authors[0].strip()
-                if news_article.authors
-                else self.config.default_author
+                else (
+                    news_article.authors[0].strip()
+                    if news_article.authors
+                    else self.config.default_author
+                )
             )
             article.author = (
                 article.author.title() if article.author.isupper() else article.author
@@ -180,9 +183,14 @@ class ScraperStrategy(ABC):
             elif i == max_retries - 1:
                 return (False, article)
 
-    async def fetch_and_parse_rss(self, category: Category, save=True) -> list[Article]:
+    async def fetch_and_parse_rss(
+        self, category: Category, proxy: dict = None, save=True
+    ) -> list[Article]:
         articles = []
-        async with httpx.AsyncClient() as client:
+        headers = {"User-Agent": UserAgent().random}
+        async with httpx.AsyncClient(
+            headers=headers, follow_redirects=True, proxies=proxy
+        ) as client:
             mapped_category = self.config.category_mapping[category]
 
             headers = {"User-Agent": UserAgent().random}
@@ -208,9 +216,11 @@ class ScraperStrategy(ABC):
                     source=self.config.provider_name,
                     title=entry.title,
                     url=entry.link,
-                    image_url=entry.media_content[0]["url"]
-                    if "media_content" in entry
-                    else "",
+                    image_url=(
+                        entry.media_content[0]["url"]
+                        if "media_content" in entry
+                        else ""
+                    ),
                 )
                 articles.append(article)
 
