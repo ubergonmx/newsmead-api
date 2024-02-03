@@ -72,7 +72,9 @@ class ScraperStrategy(ABC):
             max_retries = 10
             while articles == [] and max_retries > 0:
                 log.info(f"Fetching RSS for {category} ({max_retries} retries left)")
-                articles = await self.fetch_and_parse_rss(category, proxy_scraper)
+                articles = await self.fetch_and_parse_rss(
+                    category, proxy=proxy_scraper.get_next_proxy()
+                )
                 max_retries -= 1
 
             async with AsyncDatabase() as db:
