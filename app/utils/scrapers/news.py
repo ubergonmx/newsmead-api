@@ -68,8 +68,13 @@ class ScraperStrategy(ABC):
         self, category: Category, proxy_scraper=None
     ) -> list[Article]:
         if category in self.config.category_mapping:
-            proxy = proxy_scraper.get_next_proxy()
-            articles = await self.fetch_and_parse_rss(category, proxy=proxy)
+            articles = []
+            max_retries = 10
+            while articles == [] and max_retries > 0:
+                log.info(f"Fetching RSS for {category} ({max_retries} retries left)")
+                articles = await self.fetch_and_parse_rss(category, proxy_scraper)
+                max_retries -= 1
+
             async with AsyncDatabase() as db:
                 filtered_articles = await db.filter_new_urls(
                     articles, category=category.value
