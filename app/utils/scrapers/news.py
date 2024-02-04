@@ -200,10 +200,15 @@ class ScraperStrategy(ABC):
             log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
             proxy = proxy_scraper.get_next_proxy()
             headers = {"User-Agent": UserAgent().random}
-            async with httpx.AsyncClient(
-                headers=headers, proxies=proxy, follow_redirects=True
-            ) as client:
-                rss_response = await client.get(rss_url)
+            try:
+                async with httpx.AsyncClient(
+                    headers=headers, proxies=proxy, follow_redirects=True
+                ) as client:
+                    rss_response = await client.get(rss_url)
+            except httpx.HTTPError as e:
+                log.error("Connection error: " + str(e))
+                retries -= 1
+                continue
 
             if rss_response.status_code != 200:
                 log.error(f"RSS status code: {rss_response.status_code}")
