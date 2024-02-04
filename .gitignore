@@ -168,3 +168,4 @@ pretrained/
 news.tsv
 behaviors.tsv
 *.zip
+*firebase-adminsdk*.json
