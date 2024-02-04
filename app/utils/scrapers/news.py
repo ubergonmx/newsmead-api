@@ -46,8 +46,8 @@ class Provider(Enum):
 class ScraperConfig(NamedTuple):
     provider_name: str
     category_mapping: dict[Category, str]
-    rss_url: str
     default_author: str
+    rss_url: str = None
     webcrawler_urls: dict[Category, list[str]] = None
 
 
@@ -68,19 +68,16 @@ class ScraperStrategy(ABC):
         self, category: Category, proxy_scraper=None
     ) -> list[Article]:
         if category in self.config.category_mapping:
+            log.info(f"{self._cname()} scraping for {category} started")
+
             articles = []
-            max_retries = 10
-            while articles == [] and max_retries > 0:
-                log.info(f"Fetching RSS for {category} ({max_retries} retries left)")
-                articles = await self.fetch_and_parse_rss(
-                    category, proxy=proxy_scraper.get_next_proxy()
-                )
-                max_retries -= 1
+            articles.extend(await self.fetch_and_parse_rss(category, proxy_scraper))
 
             async with AsyncDatabase() as db:
                 filtered_articles = await db.filter_new_urls(
                     articles, category=category.value
                 )
+
             scraped_articles = await self.scrape_articles(
                 filtered_articles, proxy_scraper
             )
@@ -191,31 +188,36 @@ class ScraperStrategy(ABC):
                 return (False, article)
 
     async def fetch_and_parse_rss(
-        self, category: Category, proxy: dict = None, save=True
+        self, category: Category, proxy_scraper, retries=10, save=True
     ) -> list[Article]:
-        articles = []
-        headers = {"User-Agent": UserAgent().random}
-        async with httpx.AsyncClient(
-            headers=headers, follow_redirects=True, proxies=proxy
-        ) as client:
+        if self.config.rss_url is None:
+            log.error(f"RSS URL not defined for {self.config.provider_name}")
+            return []
+
+        async with httpx.AsyncClient(follow_redirects=True) as client:
             mapped_category = self.config.category_mapping[category]
-
-            headers = {"User-Agent": UserAgent().random}
             rss_url = self.config.rss_url.replace("[category]", mapped_category)
-            rss_response = await client.get(rss_url, headers=headers)
+            while retries > 0:
+                log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
+                proxy = proxy_scraper.get_next_proxy()
+                headers = {"User-Agent": UserAgent().random}
+                rss_response = await client.get(rss_url, proxy=proxy, headers=headers)
 
-            log.info(
-                f"{self._cname()} scraping for {category} ({mapped_category}) - {rss_url}"
-            )
+                if rss_response.status_code != 200:
+                    log.error(f"RSS status code: {rss_response.status_code}")
+                    retries -= 1
+                else:
+                    break
 
-            if rss_response.status_code != 200:
-                log.error(f"RSS status code: {rss_response.status_code}")
+            if retries == 0:
+                log.error(f"Failed to fetch RSS feed for {category}")
                 return []
 
             if save:
                 await self.save_rss(rss_response.content, category)
             feed = feedparser.parse(rss_response.content)
 
+            articles = []
             for entry in feed.entries:
                 article = Article(
                     date=self.parse_date_complete(entry.published),
