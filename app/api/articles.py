@@ -67,16 +67,6 @@ async def scrape_all_providers(
     return {"message": "Scrape all providers started"}
 
 
-@router.get("/predict", include_in_schema=False)
-async def load_news(request: Request):
-    sample_behavior = (
-        "1\tU2000505\t11/15/2019 6:02:42 AM\t1298 3901 3892 2980 112\t332-0 1231-1"
-    )
-
-    result = request.app.state.recommender.predict(sample_behavior)
-    return {"message": result}
-
-
 @router.get("/id/{article_id}")
 async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
     try:

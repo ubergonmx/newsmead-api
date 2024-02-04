@@ -45,8 +45,8 @@ class Provider(Enum):
 
 class ScraperConfig(NamedTuple):
     provider_name: str
-    category_mapping: dict[Category, str]
     default_author: str
+    category_mapping: dict[Category, str]
     rss_url: str = None
     webcrawler_urls: dict[Category, list[str]] = None
 
