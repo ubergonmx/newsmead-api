@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 app = FastAPI(lifespan=config.lifespan)
 app.include_router(base.router)
 app.include_router(articles.router, prefix="/articles")
-app.include_router(recommender.router, prefix="/recommender")
+app.include_router(recommender.router, prefix="/recommendations")
 app.include_router(logviewer.router, prefix="/logviewer")
 
 
