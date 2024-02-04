@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "adminsdk",
         "aiofiles",
         "aiosqlite",
         "apscheduler",
@@ -9,6 +10,7 @@
         "dotenv",
         "executemany",
         "fastapi",
+        "firestore",
         "gmanews",
         "hparams",
         "httpx",
