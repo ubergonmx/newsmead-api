@@ -194,46 +194,46 @@ class ScraperStrategy(ABC):
             log.error(f"RSS URL not defined for {self.config.provider_name}")
             return []
 
-        async with httpx.AsyncClient(follow_redirects=True) as client:
-            mapped_category = self.config.category_mapping[category]
-            rss_url = self.config.rss_url.replace("[category]", mapped_category)
-            while retries > 0:
-                log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
-                proxy = proxy_scraper.get_next_proxy()
-                headers = {"User-Agent": UserAgent().random}
-                rss_response = await client.get(rss_url, proxy=proxy, headers=headers)
+        mapped_category = self.config.category_mapping[category]
+        rss_url = self.config.rss_url.replace("[category]", mapped_category)
+        while retries > 0:
+            log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
+            proxy = proxy_scraper.get_next_proxy()
+            headers = {"User-Agent": UserAgent().random}
+            async with httpx.AsyncClient(
+                headers=headers, proxies=proxy, follow_redirects=True
+            ) as client:
+                rss_response = await client.get(rss_url)
 
-                if rss_response.status_code != 200:
-                    log.error(f"RSS status code: {rss_response.status_code}")
-                    retries -= 1
-                else:
-                    break
+            if rss_response.status_code != 200:
+                log.error(f"RSS status code: {rss_response.status_code}")
+                retries -= 1
+            else:
+                break
 
             if retries == 0:
                 log.error(f"Failed to fetch RSS feed for {category}")
                 return []
 
-            if save:
-                await self.save_rss(rss_response.content, category)
-            feed = feedparser.parse(rss_response.content)
+        if save:
+            await self.save_rss(rss_response.content, category)
+        feed = feedparser.parse(rss_response.content)
 
-            articles = []
-            for entry in feed.entries:
-                article = Article(
-                    date=self.parse_date_complete(entry.published),
-                    category=category.value,
-                    source=self.config.provider_name,
-                    title=entry.title,
-                    url=entry.link,
-                    image_url=(
-                        entry.media_content[0]["url"]
-                        if "media_content" in entry
-                        else ""
-                    ),
-                )
-                articles.append(article)
+        articles = []
+        for entry in feed.entries:
+            article = Article(
+                date=self.parse_date_complete(entry.published),
+                category=category.value,
+                source=self.config.provider_name,
+                title=entry.title,
+                url=entry.link,
+                image_url=(
+                    entry.media_content[0]["url"] if "media_content" in entry else ""
+                ),
+            )
+            articles.append(article)
 
-            return articles
+        return articles
 
     async def save_rss(self, rss_content: bytes, category: Category):
         current_time = datetime.now().strftime("%Y-%m-%d-%H-%M")
