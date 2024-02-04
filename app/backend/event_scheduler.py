@@ -28,7 +28,8 @@ async def check_and_fix_empty_articles(recommender: "Recommender"):
             articles = await news_scraper.scrape_articles(empty_articles, proxy)
             await db.update_empty_articles(articles)
         await recommender.save_news(db)
-    # recommender.load_news()
+    recommender.load_news()
+    log.info("Empty articles checked and fixed.")
 
 
 async def scrape_all_providers(recommender: "Recommender"):
@@ -43,7 +44,8 @@ async def scrape_all_providers(recommender: "Recommender"):
             articles = await news_scraper.scrape_all(proxy)
             await db.insert_articles(articles)
         await recommender.save_news(db)
-    # recommender.load_news()
+    recommender.load_news()
+    log.info("All providers scraped.")
 
 
 # Scheduler jobs
