@@ -2,7 +2,7 @@ from app.utils.scrapers.proxy import ProxyScraper
 from app.utils.scrapers.news import NewsScraper, Provider, get_scraper_strategy
 from app.database.database_utils import get_articles
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 import app.backend.config as config
 import os
 import datetime
@@ -17,7 +17,8 @@ async def favicon():
 
 @router.get("/")
 def read_root():
-    return {"Hello": "World"}
+    # return RedirectResponse(url="https://newsmead-docs.vercel.app")
+    return {"message": "Welcome to NewsMead API"}
 
 
 @router.get("/status")
