@@ -12,6 +12,15 @@ log = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/load-news/")
+async def load_news(request: Request):
+    try:
+        await request.app.state.recommender.load_news()
+        return {"message": "News loaded successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/{user_id}/{page}")
 async def recommended_articles(
     user_id: str, page: int, request: Request, db: AsyncDatabase = Depends(get_db)
@@ -20,18 +29,24 @@ async def recommended_articles(
     articles = await db.get_articles(Filter(), page, 10)
     log.info(f"history: {history}")
     log.info(f"articles count: {len(articles)}")
-    if history:
-        impression = [
-            f"{article.article_id}-{'1' if article.article_id in history else '0'}"
-            for article in articles
-        ]
-        log.info(f"impression: {impression}")
-        time_now = datetime.now(timezone("Asia/Manila"))
-        behavior = f"{user_id}\t{time_now}\t{' '.join(history)}\t{' '.join(impression)}"
-        ranked_ids = request.app.state.recommender.predict(behavior)
-        articles = sorted(
-            articles, key=lambda article: ranked_ids.index(str(article.article_id))
-        )
+
+    try:
+        if history:
+            impression = [
+                f"{article.article_id}-{'1' if article.article_id in history else '0'}"
+                for article in articles
+            ]
+            log.info(f"impression: {impression}")
+            time_now = datetime.now(timezone("Asia/Manila"))
+            behavior = (
+                f"{user_id}\t{time_now}\t{' '.join(history)}\t{' '.join(impression)}"
+            )
+            ranked_ids = request.app.state.recommender.predict(behavior)
+            articles = sorted(
+                articles, key=lambda article: ranked_ids.index(str(article.article_id))
+            )
+    except Exception as e:
+        log.error(f"Error predicting: {e}")
 
     return {
         "status": "success",
