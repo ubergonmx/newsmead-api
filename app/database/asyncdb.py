@@ -1,6 +1,8 @@
 from typing import Any, Optional
 from app.models.article import Article, Filter
 from app.utils.nlp.lang import Lang
+from firebase_admin import firestore, credentials
+import firebase_admin
 import asyncio
 import os
 import aiosqlite
@@ -292,6 +294,27 @@ class AsyncDatabase:
         ]
         await self.run_query(query, params, is_many=True)
         log.info(f"Updated {len(articles)} articles ({articles[0].source}).")
+
+    async def get_article_count(self):
+        query = "SELECT COUNT(1) FROM articles;"
+        result = await self.fetch(query)
+        return result[0][0]
+
+    def _get_firestore_db(self):
+        cred = credentials.Certificate(os.getenv("FIREBASE_ADMIN_SDK_NAME"))
+        if not firebase_admin._apps:
+            firebase_admin.initialize_app(cred)
+        return firestore.client()
+
+    def _get_user_history(self, user_id: str) -> list[str]:
+        db = self._get_firestore_db()
+        history = db.collection("users").document(user_id).collection("history")
+        return [doc.id for doc in history.stream()]
+
+    async def get_user_history(self, user_id: str) -> list[str]:
+        return await asyncio.get_event_loop().run_in_executor(
+            None, self._get_user_history, user_id
+        )
 
 
 async def get_db():
