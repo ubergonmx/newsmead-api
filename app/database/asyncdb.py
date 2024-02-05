@@ -158,12 +158,16 @@ class AsyncDatabase:
         params = []
 
         if filter.source is not None:
-            conditions.append("source = ?")
-            params.append(filter.source)
+            sources = filter.source.split(",")
+            placeholders = ", ".join("?" for _ in sources)
+            conditions.append(f"source IN ({placeholders})")
+            params.extend(sources)
 
         if filter.category is not None:
-            conditions.append("category = ?")
-            params.append(filter.category)
+            categories = filter.category.split(",")
+            placeholders = ", ".join("?" for _ in categories)
+            conditions.append(f"category IN ({placeholders})")
+            params.extend(categories)
 
         if filter.startDate is not None:
             conditions.append("date >= ?")
@@ -188,6 +192,8 @@ class AsyncDatabase:
         offset = (page - 1) * page_size
         params.extend([page_size, offset])
 
+        log.info(f"Query: {query}")
+        log.info(f"Params: {params}")
         results = await self.fetch(query, params)
         # Filter out non-English articles and articles with empty bodies
         lang = Lang()
