@@ -151,7 +151,7 @@ class ScraperStrategy(ABC):
                 news_article.publish_date
             )
             article.title = article.title or news_article.title
-            article.body = news_article.text
+            article.body = self.clean_body(news_article.text)
             article.author = (
                 author
                 if author is not None
@@ -278,6 +278,19 @@ class ScraperStrategy(ABC):
         if author is not None:
             return author.get("content").split(",")[0].strip()
         return None
+
+    def clean_body(self, text: str) -> str:
+        # remove ADVERTISEMENT, ADVERTORIAL, SPONSORED CONTENT, FEATURED STORIES, etc.
+        text = re.sub(
+            r"(ADVERTISEMENT|ADVERTORIAL|SPONSORED CONTENT|FEATURED STORIES|FEATURED|STORIES|FEATURES|FEATURE|STORY|AD|ADVERT|ADVERTORIALS|ADVERTORIAL"
+            + r"(\s*:\s*|\s+)",
+            "",
+            text,
+            flags=re.IGNORECASE,
+        )
+        # remove extra whitespace
+        text = re.sub(r"\s+", " ", text).strip()
+        return text
 
     def _cname(self) -> str:
         return self.__class__.__name__
