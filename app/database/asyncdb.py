@@ -42,12 +42,11 @@ class AsyncDatabase:
 
     async def create_behavior_table(self):
         query = """
-            CREATE TABLE IF NOT EXISTS behavior (
+            CREATE TABLE IF NOT EXISTS behaviors (
                 behavior_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                article_id INTEGER,
-                FOREIGN KEY (user_id) REFERENCES users (user_id),
-                FOREIGN KEY (article_id) REFERENCES articles (article_id)
+                user_id TEXT,
+                history TEXT,
+                impression_log TEXT
             );
         """
         await self.run_query(query)
