@@ -143,6 +143,25 @@ class AsyncDatabase:
             f"Inserted {len(new_articles)}/{len(articles)} (dup:-{existing_count}, inv:-{invalid_count}, emt:+{empty_count}, ok=+{len(new_articles)-empty_count}) articles."
         )
 
+    async def insert_behavior(
+        self, user_id: str, history: list[str], impression_log: str
+    ):
+        if not await self.table_exists("behaviors"):
+            await self.create_behavior_table()
+
+        await self.insert_data(
+            [
+                {
+                    "user_id": user_id,
+                    "history": history,
+                    "impression_log": impression_log,
+                }
+            ],
+            "behaviors",
+        )
+
+        log.info(f"Inserted behavior for user {user_id}.")
+
     async def get_article_by_id(self, article_id: int) -> Article:
         query = "SELECT * FROM articles WHERE article_id=?;"
         result = await self.fetch(query, (article_id,))
