@@ -32,15 +32,17 @@ async def recommended_articles(
 
     try:
         if history:
-            impression = [
-                f"{article.article_id}-{'1' if article.article_id in history else '0'}"
-                for article in articles
-            ]
-            log.info(f"impression: {impression}")
-            time_now = datetime.now(timezone("Asia/Manila"))
-            behavior = (
-                f"{user_id}\t{time_now}\t{' '.join(history)}\t{' '.join(impression)}"
+            history = " ".join(history)
+            impression_news = " ".join(
+                [
+                    f"{article.article_id}-{'1' if article.article_id in history else '0'}"
+                    for article in articles
+                ]
             )
+            log.info(f"impression_news: {impression_news}")
+            time_now = datetime.now(timezone("Asia/Manila"))
+            behavior = f"{user_id}\t{time_now}\t{history}\t{impression_news}"
+            db.insert_behavior(user_id, time_now, history, impression_news)
             ranked_ids = request.app.state.recommender.predict(behavior)
             articles = sorted(
                 articles, key=lambda article: ranked_ids.index(str(article.article_id))

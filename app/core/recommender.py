@@ -133,8 +133,10 @@ class Recommender:
 
             pred_rank = (np.argsort(np.argsort(pred)[::-1]) + 1).tolist()
             log.info(f"pred_rank: {pred_rank}")
-            impressions = [i.split("-")[0] for i in behavior.split("\t")[-1].split()]
-            merge = {r: i for r, i in zip(pred_rank, impressions)}
+            impression_news = [
+                i.split("-")[0] for i in behavior.split("\t")[-1].split()
+            ]
+            merge = {r: i for r, i in zip(pred_rank, impression_news)}
             ranked_articles = dict(sorted(merge.items()))
             articles = list(ranked_articles.values())
             log.info(f"Prediction runtime: {time.time() - start_time}")

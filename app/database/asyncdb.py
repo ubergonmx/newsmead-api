@@ -45,8 +45,9 @@ class AsyncDatabase:
             CREATE TABLE IF NOT EXISTS behaviors (
                 behavior_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id TEXT,
+                time TEXT,
                 history TEXT,
-                impression_log TEXT
+                impression_news TEXT
             );
         """
         await self.run_query(query)
@@ -143,9 +144,7 @@ class AsyncDatabase:
             f"Inserted {len(new_articles)}/{len(articles)} (dup:-{existing_count}, inv:-{invalid_count}, emt:+{empty_count}, ok=+{len(new_articles)-empty_count}) articles."
         )
 
-    async def insert_behavior(
-        self, user_id: str, history: list[str], impression_log: str
-    ):
+    async def insert_behavior(self, user_id: str, history: str, impression_news: str):
         if not await self.table_exists("behaviors"):
             await self.create_behavior_table()
 
@@ -154,7 +153,7 @@ class AsyncDatabase:
                 {
                     "user_id": user_id,
                     "history": history,
-                    "impression_log": impression_log,
+                    "impression_log": impression_news,
                 }
             ],
             "behaviors",
