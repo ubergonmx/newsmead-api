@@ -35,6 +35,7 @@ class Recommender:
         yaml_file = os.path.join(self.data_path, "utils", "naml.yaml")
         model_path = os.path.join(self.data_path, "pretrained")
         self.news_file = os.path.join(self.data_path, r"news.tsv")
+        self.impression_file = os.path.join(self.data_path, r"behaviors.tsv")
 
         hparams = prepare_hparams(
             yaml_file,
@@ -61,23 +62,30 @@ class Recommender:
         words = clean_text.split()
         return " ".join(words[:limit])
 
-    async def write_chunk_to_tsv(self, chunk, filename):
+    async def write_article_to_tsv(self, writer, article):
+        # article_id:0, category:2, title:4, body:7, url:6
+        await writer.writerow(
+            [
+                article[0],
+                article[2],
+                article[2],
+                article[4],
+                self.limit_words(article[7]),
+                article[6],
+                "[skip]",
+                "[skip]",
+            ]
+        )
+
+    async def write_impression_to_tsv(self, writer, impression):
+        # user_id:0, time:1, history:2, impression_news:3
+        await writer.writerow(impression)
+
+    async def write_chunk_to_tsv(self, chunk, filename, write_func):
         async with aiofiles.open(filename, "a", encoding="utf-8", newline="") as f:
             writer = AsyncWriter(f, delimiter="\t")
-            for row in chunk:
-                # article_id:0, category:2, title:4, body:7, url:6
-                await writer.writerow(
-                    [
-                        row[0],
-                        row[2],
-                        row[2],
-                        row[4],
-                        self.limit_words(row[7]),
-                        row[6],
-                        "[skip]",
-                        "[skip]",
-                    ]
-                )
+            for item in chunk:
+                await write_func(writer, item)
 
     async def save_news(
         self, db: AsyncDatabase, chunk_size: int = 1000, news_file: str = None
@@ -91,9 +99,27 @@ class Recommender:
             if not chunk:
                 break
 
-            await self.write_chunk_to_tsv(chunk, news_file)
+            await self.write_chunk_to_tsv(chunk, news_file, self.write_article_to_tsv)
 
         log.info(f"Saved news to {news_file}")
+
+    async def save_impressions(
+        self, db: AsyncDatabase, chunk_size: int = 1000, impression_file: str = None
+    ):
+        impression_file = impression_file or self.impression_file
+        if os.path.exists(impression_file):
+            os.remove(impression_file)
+        cursor = await db.get_all_impressions_cursor()
+        while True:
+            chunk = await cursor.fetchmany(chunk_size)
+            if not chunk:
+                break
+
+            await self.write_chunk_to_tsv(
+                chunk, impression_file, self.write_impression_to_tsv
+            )
+
+        log.info(f"Saved impressions to {impression_file}")
 
     def load_news(self, news_file: str = None):
         log.info(f"Loading news...")
