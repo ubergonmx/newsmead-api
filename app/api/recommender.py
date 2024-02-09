@@ -42,7 +42,7 @@ async def recommended_articles(
             log.info(f"impression_news: {impression_news}")
             time_now = datetime.now(timezone("Asia/Manila"))
             behavior = f"{user_id}\t{time_now}\t{history}\t{impression_news}"
-            db.insert_behavior(user_id, time_now, history, impression_news)
+            await db.insert_behavior(user_id, time_now, history, impression_news)
             ranked_ids = request.app.state.recommender.predict(behavior)
             articles = sorted(
                 articles, key=lambda article: ranked_ids.index(str(article.article_id))
