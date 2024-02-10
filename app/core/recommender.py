@@ -20,6 +20,7 @@ log = logging.getLogger(__name__)
 from recommenders.models.newsrec.newsrec_utils import prepare_hparams
 from recommenders.models.newsrec.models.naml import NAMLModel
 from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
+from recommenders.models.deeprec.deeprec_utils import cal_metric
 
 
 class Recommender:
@@ -125,7 +126,7 @@ class Recommender:
         log.info(f"Loading news...")
         self.model.news_vecs = self.model.run_news(news_file or self.news_file)
 
-    def predict(self, behavior: str) -> list[str]:
+    def predict(self, behavior: str) -> tuple[list[str], dict]:
         behavior_file = None
         try:
             log.info(f"Start predicting...")
@@ -146,19 +147,22 @@ class Recommender:
                 print("has attr")
                 del self.model.test_iterator.impr_indexes
             self.model.user_vecs = self.model.run_user(None, behavior_file)
+
             for (
                 impr_index,
                 news_index,
                 _,
-                _,
+                label,
             ) in self.model.test_iterator.load_impression_from_file(behavior_file):
                 pred = np.dot(
                     np.stack([self.model.news_vecs[i] for i in news_index], axis=0),
                     self.model.user_vecs[impr_index],
                 )
+                score = cal_metric([label], [pred], self.model.hparams.metrics)
 
             pred_rank = (np.argsort(np.argsort(pred)[::-1]) + 1).tolist()
             log.info(f"pred_rank: {pred_rank}")
+            log.info(f"score: {score}")
             impression_news = [
                 i.split("-")[0] for i in behavior.split("\t")[-1].split()
             ]
@@ -166,7 +170,7 @@ class Recommender:
             ranked_articles = dict(sorted(merge.items()))
             articles = list(ranked_articles.values())
             log.info(f"Prediction runtime: {time.time() - start_time}")
-            return articles
+            return articles, score
         finally:
             # Delete the temporary file
             os.remove(behavior_file)
