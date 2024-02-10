@@ -88,6 +88,14 @@ class ScraperStrategy(ABC):
             log.error(f"Category mapping not defined for {self._cname()}: {category}")
             return []
 
+    async def scrape_url(self, url: str) -> dict:
+        article = Article(url=url)
+        result = await self.scrape_article(article)
+        return {
+            "status": "success" if result[0] else "failed",
+            "article": result[1].dict(),
+        }
+
     async def scrape_articles(
         self, articles: list[Article], proxy_scraper=None, chunk_size=25
     ) -> list[Article]:
@@ -416,8 +424,8 @@ class NewsScraper:
     ) -> list[Article]:
         return await self.strategy.scrape_articles(articles, proxy_scraper)
 
-    # async def scrape_url(self, url: str) -> dict:
-    #     return await self.strategy.scrape_article(url)
+    async def scrape_url(self, url: str) -> dict:
+        return await self.strategy.scrape_article(url)
 
 
 # Define a mapping between Provider and ScraperStrategy
