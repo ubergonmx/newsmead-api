@@ -7,6 +7,7 @@ import asyncio
 import os
 import aiosqlite
 import logging
+import json
 
 # Configure logging
 log = logging.getLogger(__name__)
@@ -47,7 +48,8 @@ class AsyncDatabase:
                 user_id TEXT,
                 time TEXT,
                 history TEXT,
-                impression_news TEXT
+                impression_news TEXT,
+                score TEXT
             );
         """
         await self.run_query(query)
@@ -144,7 +146,9 @@ class AsyncDatabase:
             f"Inserted {len(new_articles)}/{len(articles)} (dup:-{existing_count}, inv:-{invalid_count}, emt:+{empty_count}, ok=+{len(new_articles)-empty_count}) articles."
         )
 
-    async def insert_behavior(self, user_id: str, history: str, impression_news: str):
+    async def insert_behavior(
+        self, user_id: str, time: str, history: str, impression_news: str, score: dict
+    ):
         if not await self.table_exists("behaviors"):
             await self.create_behavior_table()
 
@@ -152,8 +156,10 @@ class AsyncDatabase:
             [
                 {
                     "user_id": user_id,
+                    "time": time,
                     "history": history,
-                    "impression_log": impression_news,
+                    "impression_news": impression_news,
+                    "score": json.dumps(score),
                 }
             ],
             "behaviors",
