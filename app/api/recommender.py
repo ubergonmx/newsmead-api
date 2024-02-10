@@ -1,11 +1,8 @@
-from sqlite3 import IntegrityError
-from fastapi import APIRouter, File, Request, UploadFile, HTTPException, Depends, Header
+from fastapi import APIRouter, Request, HTTPException, Depends
 from app.database.asyncdb import AsyncDatabase, get_db
-from app.models.article import Article, Filter
+from app.models.article import Filter
 from datetime import datetime
 from pytz import timezone
-import app.backend.config as config
-import os
 import logging
 
 log = logging.getLogger(__name__)
