@@ -89,7 +89,13 @@ class ScraperStrategy(ABC):
             return []
 
     async def scrape_url(self, url: str) -> dict:
-        article = Article(url=url)
+        article = Article(
+            date="",
+            category="",
+            source=self.config.provider_name,
+            title="",
+            url=url,
+        )
         result = await self.scrape_article(article)
         return {
             "status": "success" if result[0] else "failed",
@@ -156,7 +162,7 @@ class ScraperStrategy(ABC):
             news_article.parse()
 
             article.date = article.date or self.parse_date_complete(
-                news_article.publish_date
+                news_article.publish_date or datetime.now().isoformat()
             )
             article.title = article.title or news_article.title
             article.body = self.clean_body(news_article.text)
@@ -288,17 +294,15 @@ class ScraperStrategy(ABC):
         return None
 
     def clean_body(self, text: str) -> str:
-        # remove ADVERTISEMENT, ADVERTORIAL, SPONSORED CONTENT, FEATURED STORIES, etc.
-        text = re.sub(
-            r"(ADVERTISEMENT|ADVERTORIAL|SPONSORED CONTENT|FEATURED STORIES|FEATURED|STORIES|FEATURES|FEATURE|STORY|AD|ADVERT|ADVERTORIALS|ADVERTORIAL"
-            + r"(\s*:\s*|\s+)",
-            "",
-            text,
-            flags=re.IGNORECASE,
-        )
-        # remove extra whitespace
-        text = re.sub(r"\s+", " ", text).strip()
-        return text
+        list_of_words = [
+            "ADVERTISEMENT",
+            "ADVERTORIAL",
+            "SPONSORED CONTENT",
+            "FEATURED STORIES",
+        ]
+        for word in list_of_words:
+            text = text.replace(word, "")
+        return text.strip()
 
     def _cname(self) -> str:
         return self.__class__.__name__
@@ -425,7 +429,7 @@ class NewsScraper:
         return await self.strategy.scrape_articles(articles, proxy_scraper)
 
     async def scrape_url(self, url: str) -> dict:
-        return await self.strategy.scrape_article(url)
+        return await self.strategy.scrape_url(url)
 
 
 # Define a mapping between Provider and ScraperStrategy
