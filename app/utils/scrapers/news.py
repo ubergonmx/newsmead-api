@@ -304,7 +304,11 @@ class ScraperStrategy(ABC):
         return self.__class__.__name__
 
     def parse_date_complete(self, date) -> str:
-        return parse(date).strftime("%Y-%m-%d %H:%M:%S")
+        print(date)
+        if isinstance(date, datetime):
+            return date.strftime("%Y-%m-%d %H:%M:%S")
+        else:
+            return parse(date).strftime("%Y-%m-%d %H:%M:%S")
 
 
 class GMANewsScraper(ScraperStrategy):
