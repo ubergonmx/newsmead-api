@@ -48,7 +48,7 @@ class Recommender:
         )
 
         self.model = NAMLModel(hparams, MINDAllIterator, seed=42)
-        # self.model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
+        self.model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
         log.info(f"Model setup time: {time.time() - start_time}")
 
     def limit_words(self, text: str, limit: int = None) -> str:
