@@ -205,7 +205,11 @@ class AsyncDatabase:
             params.extend([f"%{filter.text}%", f"%{filter.text}%"])
 
         conditions_sql = " AND ".join(conditions)
-        sort_order = "RANDOM()" if filter.sortBy == "recent" else "date DESC"
+        sort_order = (
+            "date DESC"
+            if filter.sortBy == None or filter.sortBy == "recent"
+            else "RANDOM()"
+        )
         query = (
             f"SELECT * FROM articles WHERE {conditions_sql} ORDER BY {sort_order} LIMIT ? OFFSET ?;"
             if conditions
