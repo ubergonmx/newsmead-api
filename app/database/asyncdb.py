@@ -201,7 +201,7 @@ class AsyncDatabase:
             params.append(filter.endDate)
 
         if filter.text is not None:
-            conditions.append("title LIKE ? OR body LIKE ?")
+            conditions.append("(title LIKE ? OR body LIKE ?)")
             params.extend([f"%{filter.text}%", f"%{filter.text}%"])
 
         conditions_sql = " AND ".join(conditions)
