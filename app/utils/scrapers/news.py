@@ -304,7 +304,6 @@ class ScraperStrategy(ABC):
         return self.__class__.__name__
 
     def parse_date_complete(self, date) -> str:
-        print(date)
         if isinstance(date, datetime):
             return date.strftime("%Y-%m-%d %H:%M:%S")
         else:
