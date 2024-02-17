@@ -12,8 +12,7 @@ API URL: _not yet available_
 
 List of **GET** endpoints:
 
-- `/search?q=[query]` - returns articles searched with the query and scraped from Google News
-- `/parse?url=[url]` - returns scraped content of the article from the given url
+- *currently in development*
 
 ## How to run
 
