@@ -163,9 +163,6 @@ cython_debug/
 *.sqlite
 logs/
 sources/
-recommender/model/
-pretrained/
-news.tsv
-behaviors.tsv
+recommender_utils/
 *.zip
 *firebase-adminsdk*.json
