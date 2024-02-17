@@ -27,6 +27,8 @@ def download(url: str, filepath: str) -> None:
 
 
 def unzip(filepath: str, target_dir: str) -> None:
+    # This will create target_dir if it does not exist
+    # This overwrite existing files if target_dir already exists
     with zipfile.ZipFile(filepath, "r") as zip_ref:
         zip_ref.extractall(target_dir)
 
@@ -41,7 +43,8 @@ def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
 
 
 if __name__ == "__main__":
-    url = "https://filebin.net/mtdol51a7im526te/pretrained.zip"
+    # Replace this URL with any direct download link
+    url = "https://filebin.net/1qp9ch7alpe4qy1b/pretrained__large_.zip"
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, "recommender_utils", "pretrained.zip")
     target_dir = os.path.join(script_dir, "recommender_utils")
