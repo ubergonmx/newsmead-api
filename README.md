@@ -12,7 +12,7 @@ API URL: _not yet available_
 
 List of **GET** endpoints:
 
-- *currently in development*
+- _currently in development_
 
 ## How to run
 
@@ -39,7 +39,14 @@ pip install -r requirements.txt
 playwright install
 ```
 
-3. Run server
+3. Add recommender system
+
+```bash
+cd app/core
+python setup.py
+```
+
+4. Run server
 
 ```bash
 uvicorn app.main:app --reload
