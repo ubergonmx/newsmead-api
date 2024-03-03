@@ -1,5 +1,5 @@
 from app.utils.scrapers.proxy import ProxyScraper
-from fastapi import APIRouter, HTTPException, UploadFile, File, Header, Depends
+from fastapi import APIRouter, HTTPException, UploadFile, File, Query, Depends
 from fastapi.responses import FileResponse
 import app.backend.config as config
 import os
@@ -29,7 +29,7 @@ def get_proxies() -> dict[str, list[str]]:
     return {"proxies": ProxyScraper().get_proxies()}
 
 
-def verify_keyphrase(keyphrase: str = Header(...)):
+def verify_keyphrase(keyphrase: str = Query(...)):
     if keyphrase != os.getenv("SECRET_KEY"):
         raise HTTPException(status_code=403, detail="Invalid keyphrase")
     return keyphrase
