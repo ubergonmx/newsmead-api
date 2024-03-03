@@ -36,7 +36,7 @@ async def recommended_articles(
                     for article in articles
                 ]
             )
-            history = " ".join(history)
+            history = " ".join([h for h in history if h != "0"])
             log.info(f"impression_news: {impression_news}")
             time_now = datetime.now(timezone("Asia/Manila"))
             behavior = f"{user_id}\t{time_now}\t{history}\t{impression_news}"
