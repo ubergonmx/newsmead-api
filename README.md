@@ -49,6 +49,9 @@ python setup.py
 4. Run server
 
 ```bash
+# go back to project root folder
+cd ../..
+
 uvicorn app.main:app --reload
 # or
 python -m app.main
