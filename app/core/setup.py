@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 
 def download(url: str, filepath: str) -> None:
-    r = requests.get(url, stream=True)
+    r = requests.get(url, stream=True, allow_redirects=True)
     if r.status_code == 200:
         print(f"Downloading {url}")
         total_size = int(r.headers.get("content-length", 0))
@@ -44,7 +44,7 @@ def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
 
 if __name__ == "__main__":
     # Replace this URL with any direct download link
-    url = "https://filebin.net/1qp9ch7alpe4qy1b/pretrained__large_.zip"
+    url = "https://bit.ly/4bTqqgd"
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, "recommender_utils", "pretrained.zip")
     target_dir = os.path.join(script_dir, "recommender_utils")
