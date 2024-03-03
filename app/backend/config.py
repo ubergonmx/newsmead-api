@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.core.recommender import Recommender
 from app.backend import event_scheduler
+from app.database.asyncdb import AsyncDatabase
 import logging.config
 import dotenv
 import os
@@ -62,7 +63,8 @@ async def lifespan(app: FastAPI):
         # Setup ML model
         log.info("Setting up ML model...")
         app.state.recommender = Recommender()
-        app.state.recommender.save_news()
+        async with AsyncDatabase() as db:
+            app.state.recommender.save_news(db)
         app.state.recommender.load_news()
 
         # Add scheduler jobs
