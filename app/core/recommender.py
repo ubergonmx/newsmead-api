@@ -91,6 +91,7 @@ class Recommender:
     async def save_news(
         self, db: AsyncDatabase, chunk_size: int = 1000, news_file: str = None
     ):
+        log.info(f"Saving news...")
         news_file = news_file or self.news_file
         if os.path.exists(news_file):
             os.remove(news_file)
