@@ -24,3 +24,4 @@ lingua-language-detector==2.0.2
 aiofiles==23.2.1
 aiocsv==1.2.5
 firebase-admin==6.4.0
+translators==5.9.0
