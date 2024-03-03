@@ -64,7 +64,7 @@ async def lifespan(app: FastAPI):
         log.info("Setting up ML model...")
         app.state.recommender = Recommender()
         async with AsyncDatabase() as db:
-            app.state.recommender.save_news(db)
+            await app.state.recommender.save_news(db)
         app.state.recommender.load_news()
 
         # Add scheduler jobs
