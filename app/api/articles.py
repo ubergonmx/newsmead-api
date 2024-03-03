@@ -6,6 +6,7 @@ from app.models.article import Filter
 import app.backend.event_scheduler as internals
 import logging
 import os
+import translators as ts
 
 router = APIRouter()
 log = logging.getLogger(__name__)
@@ -67,11 +68,20 @@ async def scrape_all_providers(
     return {"message": "Scrape all providers started"}
 
 
-@router.get("/id/{article_id}")
+@router.get("/translate/{article_id}")
 async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
     try:
         article = await db.get_article_by_id(article_id)
-        return article
+        translated_title = ts.translate_text(
+            article.title, translator="google", to_language="tl"
+        )
+        translated_body = ts.translate_text(
+            article.body, translator="google", to_language="tl"
+        )
+        return {
+            "title": translated_title,
+            "body": translated_body,
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
