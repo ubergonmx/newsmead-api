@@ -29,14 +29,14 @@ def get_proxies() -> dict[str, list[str]]:
     return {"proxies": ProxyScraper().get_proxies()}
 
 
-def verify_keyphrase(keyphrase: str = Query(...)):
-    if keyphrase != os.getenv("SECRET_KEY"):
+def verify_key(key: str = Query(...)):
+    if key != os.getenv("SECRET_KEY"):
         raise HTTPException(status_code=403, detail="Invalid keyphrase")
-    return keyphrase
+    return key
 
 
 @router.get("/download-db", include_in_schema=False)
-async def download_db(keyphrase: str = Depends(verify_keyphrase)):
+async def download_db(keyphrase: str = Depends(verify_key)):
     db_path = os.path.join(config.get_project_root(), os.getenv("DB_NAME"))
     if not os.path.exists(db_path):
         raise HTTPException(status_code=404, detail="Database not found")
@@ -48,7 +48,7 @@ async def download_db(keyphrase: str = Depends(verify_keyphrase)):
 
 @router.post("/upload-db", include_in_schema=False)
 async def create_upload_db(
-    file: UploadFile = File(...), keyphrase: str = Depends(verify_keyphrase)
+    file: UploadFile = File(...), keyphrase: str = Depends(verify_key)
 ):
     if file.filename == os.getenv("DB_NAME"):
         raise HTTPException(
