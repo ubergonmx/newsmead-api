@@ -75,10 +75,13 @@ async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
         translated_title = ts.translate_text(
             article.title, translator="google", to_language="tl"
         )
-        html_body = article.body.replace("\n", "<br>")
-        translated_body = ts.translate_html(
-            html_body, translator="google", to_language="tl"
-        ).replace("<br>", "\n")
+        # html_body = article.body.replace("\n", "<br>")
+        # translated_body = ts.translate_html(
+        #     html_body, translator="google", to_language="tl"
+        # ).replace("<br>", "\n")
+        translated_body = ts.translate_text(
+            article.body, translator="google", to_language="tl"
+        )
 
         return {
             "title": translated_title,
