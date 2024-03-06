@@ -96,12 +96,16 @@ class Recommender:
         if os.path.exists(news_file):
             os.remove(news_file)
         cursor = await db.get_all_articles_cursor()
+        last_row_in_chunk = None
         while True:
             chunk = await cursor.fetchmany(chunk_size)
             if not chunk:
                 break
-
+            last_row_in_chunk = chunk[-1]
             await self.write_chunk_to_tsv(chunk, news_file, self.write_article_to_tsv)
+
+        # Print the last row to be written
+        print(f"Last row to be written: {last_row_in_chunk[0]}")
 
         log.info(f"Saved news to {news_file}")
 
