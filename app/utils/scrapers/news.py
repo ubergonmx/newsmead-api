@@ -236,15 +236,15 @@ class ScraperStrategy(ABC):
 
         articles = []
         for entry in feed.entries:
+            if "media_content" in entry and "url" in entry.media_content[0]:
+                image_url = entry.media_content[0]["url"]
             article = Article(
                 date=self.parse_date_complete(entry.published),
                 category=category.value,
                 source=self.config.provider_name,
                 title=entry.title,
                 url=entry.link,
-                image_url=(
-                    entry.media_content[0]["url"] if "media_content" in entry else ""
-                ),
+                image_url=image_url,
             )
             articles.append(article)
 
