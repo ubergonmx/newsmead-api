@@ -236,6 +236,7 @@ class ScraperStrategy(ABC):
 
         articles = []
         for entry in feed.entries:
+            image_url = ""
             if "media_content" in entry and "url" in entry.media_content[0]:
                 image_url = entry.media_content[0]["url"]
             article = Article(
