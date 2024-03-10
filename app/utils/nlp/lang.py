@@ -1,7 +1,7 @@
 from lingua import Language, LanguageDetectorBuilder
 
 
-class Lang:
+class Language:
     def __init__(self, all=False):
         self.detector = (
             LanguageDetectorBuilder.from_all_languages()
