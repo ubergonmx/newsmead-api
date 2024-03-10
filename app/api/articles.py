@@ -3,10 +3,11 @@ from typing import Callable, Optional
 from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks, Request
 from app.database.asyncdb import AsyncDatabase, get_db
 from app.models.article import Filter
+from app.utils.nlp.lang import Lang
 import app.backend.event_scheduler as internals
 import logging
 import os
-import translators as ts
+import uuid
 
 router = APIRouter()
 log = logging.getLogger(__name__)
@@ -72,16 +73,18 @@ async def scrape_all_providers(
 async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
     try:
         article = await db.get_article_by_id(article_id)
-        translated_title = ts.translate_text(
-            article.title, translator="google", to_language="tl"
-        )
-        # html_body = article.body.replace("\n", "<br>")
-        # translated_body = ts.translate_html(
-        #     html_body, translator="google", to_language="tl"
-        # ).replace("<br>", "\n")
-        translated_body = ts.translate_text(
-            article.body, translator="google", to_language="tl"
-        )
+
+        translated_title = Lang().translate_to_filipino(article.title)
+
+        unique_symbol_double = " " + str(uuid.uuid4()) + " "
+        unique_symbol_single = " " + str(uuid.uuid4()) + " "
+
+        clean_text = article.body.replace("\n\n", unique_symbol_double)
+        clean_text = clean_text.replace("\n", unique_symbol_single)
+
+        translated_body = Lang().translate_to_filipino(clean_text)
+        translated_body = translated_body.replace(unique_symbol_single, "\n")
+        translated_body = translated_body.replace(unique_symbol_double, "\n\n")
 
         return {
             "title": translated_title,
