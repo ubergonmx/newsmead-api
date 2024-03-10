@@ -1,6 +1,6 @@
 from typing import Any, Optional
 from app.models.article import Article, Filter
-from app.utils.nlp.lang import Language
+from app.utils.nlp.lang import Lang
 from firebase_admin import firestore, credentials
 import firebase_admin
 import asyncio
@@ -223,7 +223,7 @@ class AsyncDatabase:
         log.info(f"Params: {params}")
         results = await self.fetch(query, params)
         # Filter out non-English articles and articles with empty bodies
-        lang = Language()
+        lang = Lang()
         articles = [
             article
             for article in self._set_articles(results)
