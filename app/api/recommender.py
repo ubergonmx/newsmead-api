@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request, HTTPException, Depends
+from app.core.recommender import Recommender
 from app.database.asyncdb import AsyncDatabase, get_db
 from app.models.article import Filter
 from datetime import datetime
@@ -12,6 +13,8 @@ router = APIRouter()
 @router.get("/refresh-news")
 async def refresh_news(request: Request, db: AsyncDatabase = Depends(get_db)):
     try:
+        log.info("Refreshing news...")
+        request.app.state.recommender = Recommender()
         await request.app.state.recommender.save_news(db)
         request.app.state.recommender.load_news()
         return {"message": "News refreshed successfully"}
