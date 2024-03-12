@@ -166,3 +166,4 @@ sources/
 recommender_utils/
 *.zip
 *firebase-adminsdk*.json
+sandbox*
