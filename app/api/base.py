@@ -54,7 +54,7 @@ async def create_upload_db(
         raise HTTPException(
             status_code=400, detail="Cannot upload database with same name"
         )
-    filepath = os.path.join(config.get_project_root, file.filename)
+    filepath = os.path.join(config.get_project_root(), file.filename)
     with open(filepath, "wb") as f:
         f.write(file.file.read())
     return {"message": "Database uploaded successfully"}
