@@ -8,12 +8,13 @@ import app.utils.scrapers.news as news
 import os
 import logging.config
 
-if TYPE_CHECKING:
-    from app.core.recommender import Recommender
 log = logging.getLogger(__name__)
 
 
-async def check_and_fix_empty_articles(recommender: "Recommender"):
+async def check_and_fix_empty_articles(app: FastAPI):
+    from app.core.recommender import Recommender
+
+    recommender = Recommender()
     log.info("Checking and fixing empty articles...")
     proxy = ProxyScraper()
     while proxy.get_proxies() == []:
@@ -29,10 +30,14 @@ async def check_and_fix_empty_articles(recommender: "Recommender"):
             await db.update_empty_articles(articles)
         await recommender.save_news(db)
     recommender.load_news()
+    app.state.recommender = recommender
     log.info("Empty articles checked and fixed.")
 
 
-async def scrape_all_providers(recommender: "Recommender"):
+async def scrape_all_providers(app: FastAPI):
+    from app.core.recommender import Recommender
+
+    recommender = Recommender()
     log.info("Scraping all providers...")
     proxy = ProxyScraper()
     while proxy.get_proxies() == []:
@@ -45,6 +50,7 @@ async def scrape_all_providers(recommender: "Recommender"):
             await db.insert_articles(articles)
         await recommender.save_news(db)
     recommender.load_news()
+    app.state.recommender = recommender
     log.info("All providers scraped.")
 
 
@@ -65,13 +71,9 @@ jobs = [
 
 # Schedule jobs
 def schedule_jobs(app: FastAPI):
-    from app.core.recommender import Recommender
-
     scheduler = AsyncIOScheduler(timezone=timezone(os.getenv("TIMEZONE")))
-    app.state.recommender = Recommender()
-    recommender = app.state.recommender
     for job in jobs:
         func, trigger, kwargs = job
-        scheduler.add_job(func, trigger, args=[recommender], **kwargs)
+        scheduler.add_job(func, trigger, args=[app], **kwargs)
     scheduler.start()
     return scheduler
