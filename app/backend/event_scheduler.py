@@ -3,13 +3,13 @@ from pytz import timezone
 from app.utils.scrapers.proxy import ProxyScraper
 from app.database.asyncdb import AsyncDatabase
 from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from app.core.recommender import Recommender
+from fastapi import FastAPI
 import app.utils.scrapers.news as news
 import os
 import logging.config
 
+if TYPE_CHECKING:
+    from app.core.recommender import Recommender
 log = logging.getLogger(__name__)
 
 
@@ -64,8 +64,12 @@ jobs = [
 
 
 # Schedule jobs
-def schedule_jobs(recommender: "Recommender"):
+def schedule_jobs(app: FastAPI):
+    from app.core.recommender import Recommender
+
     scheduler = AsyncIOScheduler(timezone=timezone(os.getenv("TIMEZONE")))
+    app.state.recommender = Recommender()
+    recommender = app.state.recommender
     for job in jobs:
         func, trigger, kwargs = job
         scheduler.add_job(func, trigger, args=[recommender], **kwargs)

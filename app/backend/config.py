@@ -2,7 +2,6 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.core.recommender import Recommender
 from app.backend import event_scheduler
-from app.database.asyncdb import AsyncDatabase
 import logging.config
 import dotenv
 import os
@@ -69,7 +68,7 @@ async def lifespan(app: FastAPI):
 
         # Add scheduler jobs
         log.info("Adding scheduler jobs...")
-        app.state.scheduler = event_scheduler.schedule_jobs(app.state.recommender)
+        app.state.scheduler = event_scheduler.schedule_jobs(app)
 
         yield
     finally:
