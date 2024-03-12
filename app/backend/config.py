@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.core.recommender import Recommender
 from app.backend import event_scheduler
+from app.database.asyncdb import AsyncDatabase
 import logging.config
 import dotenv
 import os
