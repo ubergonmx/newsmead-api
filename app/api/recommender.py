@@ -5,6 +5,7 @@ from app.models.article import Filter
 from datetime import datetime
 from pytz import timezone
 import logging
+import traceback
 
 log = logging.getLogger(__name__)
 router = APIRouter()
@@ -27,7 +28,7 @@ async def recommended_articles(
     user_id: str, page: int, request: Request, db: AsyncDatabase = Depends(get_db)
 ):
     history = await db.get_user_history(user_id)
-    articles = await db.get_articles(Filter(), page, 10)
+    articles = await db.get_articles(Filter(), page, 35)
     log.info(f"history: {history}")
     log.info(f"articles count: {len(articles)}")
 
@@ -51,6 +52,7 @@ async def recommended_articles(
             )
     except Exception as e:
         log.error(f"Error predicting (L{e.__traceback__.tb_lineno}): {e}")
+        log.error(traceback.format_exc())
 
     return {
         "status": "success",
