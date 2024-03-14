@@ -34,7 +34,11 @@ async def recommended_articles(
     history = await db.get_user_history(user_id)
     articles = await db.get_articles(Filter(), page, page_size)
     log.info(f"history: {history}")
+    log.info(f"history count: {len(history)}")
     log.info(f"articles count: {len(articles)}")
+
+    # Limit history to first 50
+    history = history[:50]
 
     try:
         if history:
