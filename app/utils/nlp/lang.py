@@ -86,7 +86,7 @@ class Lang:
             print(f"Error Code: {exception.error.code}")
             print(f"Message: {exception.error.message}")
 
-    def translate_text(target: str, text: str) -> dict:
+    def translate_text(self, target: str, text: str) -> dict:
         """Translates text into the target language.
 
         Target must be an ISO 639-1 language code.
