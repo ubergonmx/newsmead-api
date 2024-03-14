@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query, BackgroundTasks, R
 from app.database.asyncdb import AsyncDatabase, get_db
 from app.models.article import Filter
 from app.utils.nlp.lang import Lang
+from google.cloud import translate_v2 as translate
 import app.backend.event_scheduler as internals
 import logging
 import os
@@ -82,13 +83,26 @@ async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
         clean_text = article.body.replace("\n\n", unique_symbol_double)
         clean_text = clean_text.replace("\n", unique_symbol_single)
 
+        # google_translated_body = translate_client.translate(
+        #     clean_text, target_language="fil"
+        # )["translatedText"]
+        google_translated_body = Lang().translate_text("fil", clean_text)[
+            "translatedText"
+        ]
+        google_translated_body = google_translated_body.replace(
+            unique_symbol_single, "\n"
+        )
+        google_translated_body = google_translated_body.replace(
+            unique_symbol_double, "\n\n"
+        )
+
         translated_body = Lang().translate_to_filipino(clean_text)
         translated_body = translated_body.replace(unique_symbol_single, "\n")
         translated_body = translated_body.replace(unique_symbol_double, "\n\n")
 
         return {
             "title": translated_title,
-            "body": translated_body,
+            "body": google_translated_body,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
