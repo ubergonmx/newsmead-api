@@ -71,11 +71,15 @@ async def scrape_all_providers(
 
 
 @router.get("/translate/{article_id}")
-async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
+async def get_article(
+    article_id: int,
+    service: str = Query("bing", description="The translation service to use."),
+    db: AsyncDatabase = Depends(get_db),
+):
     try:
         article = await db.get_article_by_id(article_id)
 
-        translated_title = Lang().translate_to_filipino(article.title)
+        translated_title = Lang(detector=False).translate_text(article.title, service)
 
         unique_symbol_double = " " + str(uuid.uuid4()) + " "
         unique_symbol_single = " " + str(uuid.uuid4()) + " "
@@ -83,39 +87,15 @@ async def get_article(article_id: int, db: AsyncDatabase = Depends(get_db)):
         clean_text = article.body.replace("\n\n", unique_symbol_double)
         clean_text = clean_text.replace("\n", unique_symbol_single)
 
-        # google_translated_body = translate_client.translate(
-        #     clean_text, target_language="fil"
-        # )["translatedText"]
-        google_translated_body = Lang().translate_text("fil", clean_text)[
-            "translatedText"
-        ]
-        google_translated_body = google_translated_body.replace(
-            unique_symbol_single, "\n"
+        translated_body = Lang(detector=False).translate_text(
+            clean_text, service=service
         )
-        google_translated_body = google_translated_body.replace(
-            unique_symbol_double, "\n\n"
-        )
-
-        translated_body = Lang().translate_to_filipino(clean_text)
         translated_body = translated_body.replace(unique_symbol_single, "\n")
         translated_body = translated_body.replace(unique_symbol_double, "\n\n")
 
         return {
             "title": translated_title,
-            "body": google_translated_body,
+            "body": translated_body,
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
-# @router.post("/new")
-# async def create_article(article: Article, db: AsyncDatabase = Depends(get_db)):
-#     try:
-#         await db.insert_data([article])
-#         return {"message": "Article created successfully"}
-#     except IntegrityError as e:
-#         raise HTTPException(
-#             status_code=400, detail="Duplicate entry or integrity error"
-#         )
-#     except Exception as e:
-#         raise HTTPException(status_code=500, detail=str(e))
