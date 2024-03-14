@@ -79,7 +79,9 @@ async def get_article(
     try:
         article = await db.get_article_by_id(article_id)
 
-        translated_title = Lang(detector=False).translate_text(article.title, service)
+        translated_title = Lang(detector=False).translate_text(
+            article.title, service=service
+        )
 
         unique_symbol_double = " " + str(uuid.uuid4()) + " "
         unique_symbol_single = " " + str(uuid.uuid4()) + " "
