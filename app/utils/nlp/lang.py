@@ -4,17 +4,22 @@ from azure.ai.translation.text.models import InputTextItem
 from azure.core.exceptions import HttpResponseError
 from google.cloud import translate_v2 as translate
 import os
+import logging
+
+# Configure logging
+log = logging.getLogger(__name__)
 
 
 class Lang:
-    def __init__(self, all=False):
-        self.detector = (
-            LanguageDetectorBuilder.from_all_languages()
-            if all
-            else LanguageDetectorBuilder.from_languages(
-                Language.ENGLISH, Language.TAGALOG
-            ).build()
-        )
+    def __init__(self, detector=True, all=False):
+        if detector:
+            self.detector = (
+                LanguageDetectorBuilder.from_all_languages()
+                if all
+                else LanguageDetectorBuilder.from_languages(
+                    Language.ENGLISH, Language.TAGALOG
+                ).build()
+            )
 
     def detect(self, text) -> str:
         """
@@ -48,61 +53,48 @@ class Lang:
         """
         return self.detect(text) == "ENGLISH"
 
-    def translate_to_filipino(self, text: str, service: str = "bing") -> str:
+    def translate_text(
+        self, text: str, source: str = "en", target: str = "fil", service: str = "bing"
+    ) -> str:
         """
-        Translates the text to Filipino.
-        """
-        api_key = os.getenv("AZURE_TRANSLATOR_API_KEY")
-        region = os.getenv("AZURE_TRANSLATOR_REGION")
+        Translates the text to the target language.
+        By default, it translate from English to Filipino using the Bing Translator API.
 
-        text_translator = TextTranslationClient(
-            credential=TranslatorCredential(api_key, region)
-        )
-
-        try:
-            source_language = "en"
-            target_languages = ["fil"]
-            input_text_elements = [InputTextItem(text=text)]
-
-            response = text_translator.translate(
-                content=input_text_elements,
-                to=target_languages,
-                from_parameter=source_language,
-            )
-            translation = response[0] if response else None
-
-            if translation:
-                for translated_text in translation.translations:
-                    print(
-                        f"Text was translated to: '{translated_text.to}' and the result is: '{translated_text.text}'."
-                    )
-                    return translated_text.text
-            else:
-                raise ValueError(
-                    "Translation failed, no result returned from Azure Translator."
-                )
-
-        except HttpResponseError as exception:
-            print(f"Error Code: {exception.error.code}")
-            print(f"Message: {exception.error.message}")
-
-    def translate_text(self, target: str, text: str) -> dict:
-        """Translates text into the target language.
-
-        Target must be an ISO 639-1 language code.
+        For Google, target must be an ISO 639-1 language code.
         See https://g.co/cloud/translate/v2/translate-reference#supported_languages
         """
-        translate_client = translate.Client()
 
-        if isinstance(text, bytes):
-            text = text.decode("utf-8")
+        if service == "bing":
+            api_key = os.getenv("AZURE_TRANSLATOR_API_KEY")
+            region = os.getenv("AZURE_TRANSLATOR_REGION")
 
-        # Text can also be a sequence of strings, in which case this method
-        # will return a sequence of results for each text.
-        result = translate_client.translate(text, target_language=target)
+            text_translator = TextTranslationClient(
+                credential=TranslatorCredential(api_key, region)
+            )
 
-        print("Text: {}".format(result["input"]))
-        print("Translation: {}".format(result["translatedText"]))
-        print("Detected source language: {}".format(result["detectedSourceLanguage"]))
+            try:
+                input_text_elements = [InputTextItem(text=text)]
 
-        return result
+                response = text_translator.translate(
+                    content=input_text_elements, to=[target], from_parameter=source
+                )
+                translation = response[0] if response else None
+
+                if translation:
+                    for translated_text in translation.translations:
+                        return translated_text.text
+                else:
+                    raise ValueError(
+                        "Translation failed, no result returned from Azure Translator."
+                    )
+
+            except HttpResponseError as exception:
+                log.error(f"Error Code: {exception.error.code}")
+                log.error(f"Message: {exception.error.message}")
+
+        elif service == "google":
+            translate_client = translate.Client()
+            if isinstance(text, bytes):
+                text = text.decode("utf-8")
+            result = translate_client.translate(text, target_language=target)
+            return result["translatedText"]
