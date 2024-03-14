@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, Depends
+from fastapi import APIRouter, Request, HTTPException, Depends, Query
 from app.core.recommender import Recommender
 from app.database.asyncdb import AsyncDatabase, get_db
 from app.models.article import Filter
@@ -23,12 +23,16 @@ async def refresh_news(request: Request, db: AsyncDatabase = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/{user_id}/{page}")
+@router.get("/{user_id}")
 async def recommended_articles(
-    user_id: str, page: int, request: Request, db: AsyncDatabase = Depends(get_db)
+    request: Request,
+    user_id: str,
+    page: int = Query(1),
+    page_size: int = Query(35),
+    db: AsyncDatabase = Depends(get_db),
 ):
     history = await db.get_user_history(user_id)
-    articles = await db.get_articles(Filter(), page, 35)
+    articles = await db.get_articles(Filter(), page, page_size)
     log.info(f"history: {history}")
     log.info(f"articles count: {len(articles)}")
 
