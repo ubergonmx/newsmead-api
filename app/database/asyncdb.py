@@ -175,7 +175,7 @@ class AsyncDatabase:
         return self._set_article(result[0])
 
     async def get_articles(
-        self, filter: Filter, page: int = 1, page_size: int = 10
+        self, filter: Filter, page: int = 1, page_size: int = 30
     ) -> list[Article]:
         conditions = []
         params = []
