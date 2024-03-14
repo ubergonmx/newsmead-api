@@ -167,3 +167,4 @@ recommender_utils/
 *.zip
 *firebase-adminsdk*.json
 sandbox*
+newsmead-translator*.json
