@@ -48,7 +48,7 @@ class Lang:
         """
         return self.detect(text) == "ENGLISH"
 
-    def translate_to_filipino(self, text: str, service: str) -> str:
+    def translate_to_filipino(self, text: str, service: str = "bing") -> str:
         """
         Translates the text to Filipino.
         """
