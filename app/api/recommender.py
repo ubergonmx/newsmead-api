@@ -31,33 +31,32 @@ async def recommended_articles(
     page_size: int = Query(35),
     db: AsyncDatabase = Depends(get_db),
 ):
-    history = await db.get_user_history(user_id)
-    articles = await db.get_articles(Filter(), page, page_size)
-    log.info(f"history: {history}")
-    log.info(f"history count: {len(history)}")
-    log.info(f"articles count: {len(articles)}")
-
-    # Limit history to first 50
-    history = history[:50]
-
     try:
-        if history:
-            impression_news = " ".join(
-                [
-                    f"{article.article_id}-{'1' if str(article.article_id) in history else '0'}"
-                    for article in articles
-                ]
-            )
-            history = " ".join([h for h in history if h != "0"])
-            log.info(f"impression_news: {impression_news}")
-            time_now = datetime.now(timezone("Asia/Manila"))
-            behavior = f"{user_id}\t{time_now}\t{history}\t{impression_news}"
-            ranked_ids, score = request.app.state.recommender.predict(behavior)
-            await db.insert_behavior(user_id, time_now, history, impression_news, score)
-            log.info(f"ranked_ids: {ranked_ids}")
-            articles = sorted(
-                articles, key=lambda article: ranked_ids.index(str(article.article_id))
-            )
+        log.info(f"Getting recommended articles for user {user_id}...")
+        history = await db.get_user_history(user_id)
+        articles = await db.get_articles(Filter(), page, page_size)
+        log.info(f"history: {history}")
+        log.info(f"history count: {len(history)}")
+        log.info(f"articles count: {len(articles)}")
+
+        # Limit history to first 50
+        history = history[:50]
+        impression_news = " ".join(
+            [
+                f"{article.article_id}-{'1' if str(article.article_id) in history else '0'}"
+                for article in articles
+            ]
+        )
+        history = " ".join([h for h in history if h != "0"])
+        log.info(f"impression_news: {impression_news}")
+        time_now = datetime.now(timezone("Asia/Manila"))
+        behavior = f"{user_id}\t{time_now}\t{history}\t{impression_news}"
+        ranked_ids, score = request.app.state.recommender.predict(behavior)
+        await db.insert_behavior(user_id, time_now, history, impression_news, score)
+        log.info(f"ranked_ids: {ranked_ids}")
+        articles = sorted(
+            articles, key=lambda article: ranked_ids.index(str(article.article_id))
+        )
     except Exception as e:
         log.error(f"Error predicting (L{e.__traceback__.tb_lineno}): {e}")
         log.error(traceback.format_exc())
