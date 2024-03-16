@@ -130,6 +130,7 @@ class Recommender:
     def load_news(self, news_file: str = None):
         log.info(f"Loading news...")
         self.model.news_vecs = self.model.run_news(news_file or self.news_file)
+        log.info(f"Loaded news")
 
     def predict(self, behavior: str) -> tuple[list[str], dict]:
         behavior_file = None
