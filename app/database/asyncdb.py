@@ -341,7 +341,10 @@ class AsyncDatabase:
 
     def _get_user_history(self, user_id: str) -> list[str]:
         db = self._get_firestore_db()
-        history = db.collection("users").document(user_id).collection("history")
+        user_ref = db.collection("users").document(user_id)
+        if not user_ref.get().exists:
+            raise ValueError(f"User {user_id} does not exist.")
+        history = user_ref.collection("history")
         return [doc.id for doc in history.stream()]
 
     async def get_user_history(self, user_id: str) -> list[str]:
