@@ -83,7 +83,7 @@ async def get_article(
             article.title, service=service
         )
 
-        newline_replace = "[-]"
+        newline_replace = "[NL]"
         clean_text = article.body.replace("\n", newline_replace)
         translated_body = Lang(detector=False).translate_text(
             clean_text, service=service
