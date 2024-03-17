@@ -351,9 +351,9 @@ class AsyncDatabase:
         history = await asyncio.get_event_loop().run_in_executor(
             None, self._get_user_history, user_id
         )
-
         if history[0] == "-1":
             raise ValueError(f"User {user_id} does not exist.")
+        return history
 
 
 async def get_db():
