@@ -83,12 +83,13 @@ async def get_article(
             article.title, service=service
         )
 
-        newline_replace = "[NL]"
+        newline_replace = "[-]"
         clean_text = article.body.replace("\n", newline_replace)
         translated_body = Lang(detector=False).translate_text(
             clean_text, service=service
         )
         translated_body = translated_body.replace(newline_replace, "\n")
+        translated_body = translated_body.replace("[ -]", "\n").replace("[- ]", "\n")
         translated_body = html.unescape(translated_body)
 
         return {
