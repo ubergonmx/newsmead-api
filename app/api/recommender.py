@@ -31,6 +31,7 @@ async def recommended_articles(
     page_size: int = Query(35),
     db: AsyncDatabase = Depends(get_db),
 ):
+    articles = []
     try:
         log.info(f"Getting recommended articles for user {user_id}...")
         history = await db.get_user_history(user_id)
