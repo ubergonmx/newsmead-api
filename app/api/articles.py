@@ -8,7 +8,7 @@ from google.cloud import translate_v2 as translate
 import app.backend.event_scheduler as internals
 import logging
 import os
-import uuid
+import html
 
 router = APIRouter()
 log = logging.getLogger(__name__)
@@ -83,17 +83,13 @@ async def get_article(
             article.title, service=service
         )
 
-        unique_symbol_double = " " + str(uuid.uuid4()) + " "
-        unique_symbol_single = " " + str(uuid.uuid4()) + " "
-
-        clean_text = article.body.replace("\n\n", unique_symbol_double)
-        clean_text = clean_text.replace("\n", unique_symbol_single)
-
+        newline_replace = "[-]"
+        clean_text = article.body.replace("\n", newline_replace)
         translated_body = Lang(detector=False).translate_text(
             clean_text, service=service
         )
-        translated_body = translated_body.replace(unique_symbol_single, "\n")
-        translated_body = translated_body.replace(unique_symbol_double, "\n\n")
+        translated_body = html.unescape(translated_body)
+        translated_body = translated_body.replace(newline_replace, "\n")
 
         return {
             "title": translated_title,
