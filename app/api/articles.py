@@ -88,8 +88,8 @@ async def get_article(
         translated_body = Lang(detector=False).translate_text(
             clean_text, service=service
         )
-        translated_body = html.unescape(translated_body)
         translated_body = translated_body.replace(newline_replace, "\n")
+        translated_body = html.unescape(translated_body)
 
         return {
             "title": translated_title,
