@@ -153,7 +153,7 @@ class Recommender:
                 print("has attr")
                 del self.model.test_iterator.impr_indexes
             self.model.user_vecs = self.model.run_user(None, behavior_file)
-
+            score = {}
             for (
                 impr_index,
                 news_index,
@@ -164,7 +164,10 @@ class Recommender:
                     np.stack([self.model.news_vecs[i] for i in news_index], axis=0),
                     self.model.user_vecs[impr_index],
                 )
-                score = cal_metric([label], [pred], self.model.hparams.metrics)
+                try:
+                    score = cal_metric([label], [pred], self.model.hparams.metrics)
+                except Exception as e:
+                    pass
 
             pred_rank = (np.argsort(np.argsort(pred)[::-1]) + 1).tolist()
             log.info(f"pred_rank: {pred_rank}")
