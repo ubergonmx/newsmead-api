@@ -110,7 +110,3 @@ if __name__ == "__main__":
 
     print("saved results to ", os.path.join(data_path, "results.txt"))
     print("overall time: ", timedelta(seconds=time.time() - start_overall_time))
-
-    # Save the whole console output to a file
-    with open(os.path.join(target_dir, "output.txt"), "w") as file:
-        file.write(sys.stdout.getvalue())
