@@ -2,7 +2,6 @@ import os
 import time
 from datetime import timedelta
 import sys
-import numpy as np
 import zipfile
 from tqdm import tqdm
 import tensorflow as tf
