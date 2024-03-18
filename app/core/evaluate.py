@@ -51,7 +51,7 @@ def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
 
 if __name__ == "__main__":
     # Replace this URL with any direct download link
-    url = "https://bit.ly/3IE7VPg"
+    url = "https://filebin.net/bskihqtjqyohhjpc/naml_complete__large_.zip"
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, "evaluate", "pretrained.zip")
     target_dir = os.path.join(script_dir, "evaluate")
