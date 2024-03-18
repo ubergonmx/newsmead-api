@@ -55,6 +55,8 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, "evaluate", "pretrained.zip")
     target_dir = os.path.join(script_dir, "evaluate")
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
     print(filepath)
     download_and_unzip(url, filepath, target_dir)
     cleanup(filepath)
