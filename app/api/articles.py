@@ -71,7 +71,7 @@ async def scrape_all_providers(
 
 
 @router.get("/translate/{article_id}")
-async def get_article(
+async def translate_article(
     article_id: int,
     service: str = Query("bing", description="The translation service to use."),
     db: AsyncDatabase = Depends(get_db),
