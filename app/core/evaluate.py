@@ -45,18 +45,18 @@ def cleanup(filepath: str) -> None:
 
 
 def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
     download(url, filepath)
     unzip(filepath, target_dir)
 
 
 if __name__ == "__main__":
     # Replace this URL with any direct download link
-    url = "https://filebin.net/bskihqtjqyohhjpc/naml_complete__large_.zip"
+    url = "https://filebin.net/19aeuvg2jgix8iol/naml.zip"
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, "evaluate", "pretrained.zip")
     target_dir = os.path.join(script_dir, "evaluate")
-    if not os.path.exists(target_dir):
-        os.makedirs(target_dir)
     print(filepath)
     download_and_unzip(url, filepath, target_dir)
     cleanup(filepath)
@@ -70,10 +70,12 @@ if __name__ == "__main__":
     # Prepare Parameters
     data_path = os.path.join(target_dir, "MIND_large")
 
-    train_news_file = os.path.join(data_path, "train", r"news.tsv")
-    train_behaviors_file = os.path.join(data_path, "train", r"behaviors.tsv")
-    valid_news_file = os.path.join(data_path, "valid", r"news.tsv")
-    valid_behaviors_file = os.path.join(data_path, "valid", r"behaviors.tsv")
+    # train_news_file = os.path.join(data_path, "train", r"news.tsv")
+    # train_behaviors_file = os.path.join(data_path, "train", r"behaviors.tsv")
+    # valid_news_file = os.path.join(data_path, "valid", r"news.tsv")
+    # valid_behaviors_file = os.path.join(data_path, "valid", r"behaviors.tsv")
+    test_news_file = os.path.join(data_path, "test", r"news.tsv")
+    test_behaviors_file = os.path.join(data_path, "test", r"behaviors.tsv")
     wordEmb_file = os.path.join(data_path, "utils", "embedding_all.npy")
     userDict_file = os.path.join(data_path, "utils", "uid2index.pkl")
     wordDict_file = os.path.join(data_path, "utils", "word_dict_all.pkl")
@@ -100,7 +102,7 @@ if __name__ == "__main__":
     print("setup time: ", timedelta(seconds=time.time() - start_time))
 
     # Evaluate the model
-    res = model.run_eval(valid_news_file, valid_behaviors_file)
+    res = model.run_eval(test_news_file, test_behaviors_file)
     print("eval time: ", timedelta(seconds=time.time() - start_time))
     print("results: ", res)
 

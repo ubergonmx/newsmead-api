@@ -38,6 +38,8 @@ def cleanup(filepath: str) -> None:
 
 
 def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
+    if not os.path.exists(target_dir):
+        os.makedirs(target_dir)
     download(url, filepath)
     unzip(filepath, target_dir)
 
