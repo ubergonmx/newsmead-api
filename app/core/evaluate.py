@@ -100,13 +100,19 @@ if __name__ == "__main__":
         default="https://filebin.net/19aeuvg2jgix8iol/naml.zip",
         help="direct download link for the zip file",
     )
-    # add dir argument
     parser.add_argument(
         "-d",
         "--dir",
         default="",
         help="directory to download and extract the zip to (default: current directory)",
     )
+    parser.add_argument(
+        "-e",
+        "--epoch",
+        default=5,
+        help="number of epochs to train the model",
+    )
+
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -114,14 +120,14 @@ if __name__ == "__main__":
 
     if not args.no_dl:
         filepath = os.path.join(target_dir, "MIND.zip")
-        print("Downloading and unzipping to: ", filepath)
+        print("downloading and unzipping to: ", filepath)
         download_and_unzip(args.url, filepath, target_dir)
 
     tf.get_logger().setLevel("ERROR")  # only show error messages
 
     start_overall_time = time.time()
-    print("System version: {}".format(sys.version))
-    print("Tensorflow version: {}".format(tf.__version__))
+    print("system version: {}".format(sys.version))
+    print("tensorflow version: {}".format(tf.__version__))
 
     # Prepare Parameters
     data_path = os.path.join(target_dir, "MIND_large")
@@ -140,12 +146,13 @@ if __name__ == "__main__":
     yaml_file = os.path.join(data_path, "utils", r"naml.yaml")
     model_path = os.path.join(data_path, "model")
 
-    # Call the function to add labels and save the updated data to a new file
+    # Add label 0 to test behaviors file and save the updated data to a new file
     new_test_behaviors_file = os.path.join(
         data_path, "test", r"behaviors_with_labels.tsv"
     )
+    print("adding label 0 to test behaviors file...")
     add_label_to_news(test_behaviors_file, new_test_behaviors_file)
-    print("Labels added and new file saved successfully!")
+    print("added label 0 to test behaviors file")
 
     # Setup the model
     start_time = time.time()
@@ -160,6 +167,13 @@ if __name__ == "__main__":
     iterator = MINDAllIterator
     seed = 42
     model = NAMLModel(hparams, iterator, seed=seed)
+
+    try:
+        print("model epochs: ", model.hparams.epochs)
+        if args.epoch:
+            model.hparams.epochs = args.epoch
+    except:
+        print("cannot print and set model epoch")
 
     if args.fit:
         # Save stdout to a file
