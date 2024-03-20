@@ -1,5 +1,6 @@
 # Download model and unzip to recommender_utils
 import math
+import sys
 import requests
 import zipfile
 import os
@@ -27,7 +28,6 @@ def download(url: str, filepath: str) -> None:
 
 
 def unzip(filepath: str, target_dir: str) -> None:
-    # This will create target_dir if it does not exist
     # This overwrite existing files if target_dir already exists
     with zipfile.ZipFile(filepath, "r") as zip_ref:
         zip_ref.extractall(target_dir)
@@ -42,14 +42,18 @@ def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
         os.makedirs(target_dir)
     download(url, filepath)
     unzip(filepath, target_dir)
+    cleanup(filepath)
 
 
 if __name__ == "__main__":
-    # Replace this URL with any direct download link
-    url = "https://bit.ly/4bTqqgd"
+    # Replace this with the direct download link of the model
+    url = ""
+    # or use the first argument as the url when running the script
+    # python setup.py <url>
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, "recommender_utils", "pretrained.zip")
     target_dir = os.path.join(script_dir, "recommender_utils")
-    print(filepath)
+    print("Downloading and unzipping to:", filepath)
     download_and_unzip(url, filepath, target_dir)
-    cleanup(filepath)
