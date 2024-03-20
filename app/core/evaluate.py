@@ -53,6 +53,33 @@ def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
     cleanup(filepath)
 
 
+def add_label_to_news(old_behavior_file, new_behavior_file):
+    # Open the old behavior file for reading
+    with open(old_behavior_file, "r") as old_file:
+        # Open a new behavior file for writing
+        with open(new_behavior_file, "w") as new_file:
+            # Iterate through each line in the old behavior file
+            for line in old_file:
+                # Split the line into its components
+                (
+                    impression_id,
+                    user_id,
+                    impression_time,
+                    user_click_history,
+                    impression_news,
+                ) = line.strip().split("\t")
+                # Split the impression news into individual news IDs
+                news_ids_with_label = [
+                    f"{news_id}-0" for news_id in impression_news.split()
+                ]
+                # Join the news IDs with labels back into a single string
+                impression_news_with_labels = " ".join(news_ids_with_label)
+                # Write the updated line to the new behavior file
+                new_file.write(
+                    f"{impression_id}\t{user_id}\t{impression_time}\t{user_click_history}\t{impression_news_with_labels}\n"
+                )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -113,9 +140,16 @@ if __name__ == "__main__":
     yaml_file = os.path.join(data_path, "utils", r"naml.yaml")
     model_path = os.path.join(data_path, "model")
 
+    # Call the function to add labels and save the updated data to a new file
+    new_test_behaviors_file = os.path.join(
+        data_path, "test", r"behaviors_with_labels.tsv"
+    )
+    add_label_to_news(test_behaviors_file, new_test_behaviors_file)
+    print("Labels added and new file saved successfully!")
+
     # Setup the model
     start_time = time.time()
-    hparams2 = prepare_hparams(
+    hparams = prepare_hparams(
         yaml_file,
         wordEmb_file=wordEmb_file,
         wordDict_file=wordDict_file,
@@ -123,9 +157,9 @@ if __name__ == "__main__":
         vertDict_file=vertDict_file,
         subvertDict_file=subvertDict_file,
     )
-    iterator2 = MINDAllIterator
-    seed2 = 42
-    model = NAMLModel(hparams2, iterator2, seed=seed2)
+    iterator = MINDAllIterator
+    seed = 42
+    model = NAMLModel(hparams, iterator, seed=seed)
 
     if args.fit:
         # Save stdout to a file
@@ -137,7 +171,7 @@ if __name__ == "__main__":
             valid_news_file,
             valid_behaviors_file,
             test_news_file,
-            test_behaviors_file,
+            new_test_behaviors_file,
         )
         # Return stdout to normal
         sys.stdout = sys.__stdout__
@@ -147,7 +181,7 @@ if __name__ == "__main__":
         model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
         print("setup time: ", timedelta(seconds=time.time() - start_time))
 
-        res = model.run_eval(test_news_file, test_behaviors_file)
+        res = model.run_eval(test_news_file, new_test_behaviors_file)
         print("eval time: ", timedelta(seconds=time.time() - start_time))
 
         # Save the evaluation results to a file
