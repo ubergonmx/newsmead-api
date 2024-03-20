@@ -73,10 +73,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    target_dir = os.path.join(script_dir, "evaluate")
+
     if not args.no_dl:
-        script_dir = os.path.dirname(os.path.abspath(__file__))
         filepath = os.path.join(script_dir, "evaluate", "pretrained.zip")
-        target_dir = os.path.join(script_dir, "evaluate")
         print("Downloading and unzipping to: ", filepath)
         download_and_unzip(args.url, filepath, target_dir)
 
@@ -116,9 +117,6 @@ if __name__ == "__main__":
     iterator2 = MINDAllIterator
     seed2 = 42
     model = NAMLModel(hparams2, iterator2, seed=seed2)
-    # Load the weights saved from the model trained above
-    model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
-    print("setup time: ", timedelta(seconds=time.time() - start_time))
 
     if args.fit:
         # Save stdout to a file
@@ -136,6 +134,10 @@ if __name__ == "__main__":
         sys.stdout = sys.__stdout__
         print("fit time: ", timedelta(seconds=time.time() - start_time))
     else:
+        # Load the weights saved from the model trained above
+        model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
+        print("setup time: ", timedelta(seconds=time.time() - start_time))
+
         res = model.run_eval(test_news_file, test_behaviors_file)
         print("eval time: ", timedelta(seconds=time.time() - start_time))
 
