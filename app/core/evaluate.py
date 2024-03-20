@@ -128,6 +128,8 @@ if __name__ == "__main__":
     start_overall_time = time.time()
     print("system version: {}".format(sys.version))
     print("tensorflow version: {}".format(tf.__version__))
+    physical_devices = tf.config.list_physical_devices("GPU")
+    print("physical devices: ", physical_devices)
 
     # Prepare Parameters
     data_path = os.path.join(target_dir, "MIND_large")
