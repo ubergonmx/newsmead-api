@@ -89,7 +89,7 @@ if __name__ == "__main__":
         help="fit the model with the train, dev, & test set",
     )
     parser.add_argument(
-        "-n",
+        "-nd",
         "--no-dl",
         action="store_true",
         help="do not download the zip file",
@@ -111,6 +111,13 @@ if __name__ == "__main__":
         "--epoch",
         default=5,
         help="number of epochs to train the model",
+    )
+    # add no-save option
+    parser.add_argument(
+        "-ns",
+        "--no-save",
+        action="store_true",
+        help="do not save the model weights",
     )
 
     args = parser.parse_args()
@@ -192,6 +199,14 @@ if __name__ == "__main__":
         # Return stdout to normal
         sys.stdout = sys.__stdout__
         print("fit time: ", timedelta(seconds=time.time() - start_time))
+
+        # Save the model weights
+        if not args.no_save:
+            new_model_path = os.path.join(data_path, "pretrained")
+            model.model.save_weights(os.path.join(new_model_path, "naml_ckpt"))
+            print("saved model to ", os.path.join(new_model_path, "naml_ckpt"))
+        else:
+            print("model not saved")
     else:
         # Load the weights saved from the model trained above
         model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
@@ -205,4 +220,5 @@ if __name__ == "__main__":
             file.write(str(res))
 
         print("saved results to ", os.path.join(data_path, "results.txt"))
-        print("overall time: ", timedelta(seconds=time.time() - start_overall_time))
+
+    print("overall time: ", timedelta(seconds=time.time() - start_overall_time))
