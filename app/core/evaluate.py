@@ -112,12 +112,17 @@ if __name__ == "__main__":
         default=5,
         help="number of epochs to train the model",
     )
-    # add no-save option
     parser.add_argument(
         "-ns",
         "--no-save",
         action="store_true",
         help="do not save the model weights",
+    )
+    parser.add_argument(
+        "-nl",
+        "--no-label",
+        action="store_true",
+        help="do not add label 0 to test behaviors file",
     )
 
     args = parser.parse_args()
@@ -155,13 +160,15 @@ if __name__ == "__main__":
     yaml_file = os.path.join(data_path, "utils", r"naml.yaml")
     model_path = os.path.join(data_path, "model")
 
-    # Add label 0 to test behaviors file and save the updated data to a new file
     new_test_behaviors_file = os.path.join(
         data_path, "test", r"behaviors_with_labels.tsv"
     )
-    print("adding label 0 to test behaviors file...")
-    add_label_to_news(test_behaviors_file, new_test_behaviors_file)
-    print("added label 0 to test behaviors file")
+
+    if not args.no_label:
+        # Add label 0 to test behaviors file and save the updated data to a new file
+        print("adding label 0 to test behaviors file...")
+        add_label_to_news(test_behaviors_file, new_test_behaviors_file)
+        print("added label 0 to test behaviors file")
 
     # Setup the model
     start_time = time.time()
