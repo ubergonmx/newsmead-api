@@ -56,26 +56,29 @@ def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "-f",
         "--fit",
         action="store_true",
-        help="Fit the model with the train, dev, & test set",
+        help="fit the model with the train, dev, & test set",
     )
     parser.add_argument(
+        "-n",
         "--no-dl",
         action="store_true",
-        help="Do not download the zip file",
+        help="do not download the zip file",
     )
     parser.add_argument(
-        "url",
-        nargs="?",
+        "-u",
+        "--url",
         default="https://filebin.net/19aeuvg2jgix8iol/naml.zip",
-        help="Direct download link for the zip file",
+        help="direct download link for the zip file",
     )
     # add dir argument
     parser.add_argument(
+        "-d",
         "--dir",
-        default="evaluate",
-        help="Directory to download and extract the zip to",
+        default="",
+        help="directory to download and extract the zip to (default: current directory)",
     )
     args = parser.parse_args()
 
