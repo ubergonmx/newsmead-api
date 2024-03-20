@@ -63,21 +63,27 @@ if __name__ == "__main__":
     parser.add_argument(
         "--no-dl",
         action="store_true",
-        help="Do not download the pretrained model",
+        help="Do not download the zip file",
     )
     parser.add_argument(
         "url",
         nargs="?",
         default="https://filebin.net/19aeuvg2jgix8iol/naml.zip",
-        help="Direct download link for the pretrained model",
+        help="Direct download link for the zip file",
+    )
+    # add dir argument
+    parser.add_argument(
+        "--dir",
+        default="evaluate",
+        help="Directory to download and extract the zip to",
     )
     args = parser.parse_args()
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    target_dir = os.path.join(script_dir, "evaluate")
+    target_dir = os.path.join(script_dir, args.dir)
 
     if not args.no_dl:
-        filepath = os.path.join(script_dir, "evaluate", "pretrained.zip")
+        filepath = os.path.join(target_dir, "MIND.zip")
         print("Downloading and unzipping to: ", filepath)
         download_and_unzip(args.url, filepath, target_dir)
 
