@@ -35,7 +35,6 @@ def download(url: str, filepath: str) -> None:
 
 
 def unzip(filepath: str, target_dir: str) -> None:
-    # This will create target_dir if it does not exist
     # This overwrite existing files if target_dir already exists
     with zipfile.ZipFile(filepath, "r") as zip_ref:
         zip_ref.extractall(target_dir)
@@ -68,12 +67,18 @@ def add_label_to_news(old_behavior_file, new_behavior_file):
                     user_click_history,
                     impression_news,
                 ) = line.strip().split("\t")
-                # Split the impression news into individual news IDs
-                news_ids_with_label = [
-                    f"{news_id}-0" for news_id in impression_news.split()
-                ]
+                # Check if labels already exist for the news IDs
+                news_ids_with_labels = []
+                for news_id in impression_news.split():
+                    # Check if the news ID already has a label
+                    if "-" not in news_id:
+                        # If no label exists, add a label of 0
+                        news_ids_with_labels.append(f"{news_id}-0")
+                    else:
+                        # If a label already exists, keep it unchanged
+                        news_ids_with_labels.append(news_id)
                 # Join the news IDs with labels back into a single string
-                impression_news_with_labels = " ".join(news_ids_with_label)
+                impression_news_with_labels = " ".join(news_ids_with_labels)
                 # Write the updated line to the new behavior file
                 new_file.write(
                     f"{impression_id}\t{user_id}\t{impression_time}\t{user_click_history}\t{impression_news_with_labels}\n"
