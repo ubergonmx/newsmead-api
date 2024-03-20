@@ -55,5 +55,5 @@ if __name__ == "__main__":
     script_dir = os.path.dirname(os.path.abspath(__file__))
     filepath = os.path.join(script_dir, "recommender_utils", "pretrained.zip")
     target_dir = os.path.join(script_dir, "recommender_utils")
-    print("Downloading and unzipping to:", filepath)
+    print("Downloading and unzipping to: ", filepath)
     download_and_unzip(url, filepath, target_dir)

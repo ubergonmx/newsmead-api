@@ -1,12 +1,13 @@
 import os
 import time
-from datetime import timedelta
 import sys
 import zipfile
-from tqdm import tqdm
 import tensorflow as tf
 import math
 import requests
+import argparse
+from tqdm import tqdm
+from datetime import timedelta
 
 from recommenders.models.newsrec.newsrec_utils import prepare_hparams
 from recommenders.models.newsrec.models.naml import NAMLModel
@@ -49,17 +50,35 @@ def download_and_unzip(url: str, filepath: str, target_dir: str) -> None:
         os.makedirs(target_dir)
     download(url, filepath)
     unzip(filepath, target_dir)
+    cleanup(filepath)
 
 
 if __name__ == "__main__":
-    # Replace this URL with any direct download link
-    url = "https://filebin.net/19aeuvg2jgix8iol/naml.zip"
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    filepath = os.path.join(script_dir, "evaluate", "pretrained.zip")
-    target_dir = os.path.join(script_dir, "evaluate")
-    print(filepath)
-    download_and_unzip(url, filepath, target_dir)
-    cleanup(filepath)
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--fit",
+        action="store_true",
+        help="Fit the model with the train, dev, & test set",
+    )
+    parser.add_argument(
+        "--no-dl",
+        action="store_true",
+        help="Do not download the pretrained model",
+    )
+    parser.add_argument(
+        "url",
+        nargs="?",
+        default="https://filebin.net/19aeuvg2jgix8iol/naml.zip",
+        help="Direct download link for the pretrained model",
+    )
+    args = parser.parse_args()
+
+    if not args.no_dl:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        filepath = os.path.join(script_dir, "evaluate", "pretrained.zip")
+        target_dir = os.path.join(script_dir, "evaluate")
+        print("Downloading and unzipping to: ", filepath)
+        download_and_unzip(args.url, filepath, target_dir)
 
     tf.get_logger().setLevel("ERROR")  # only show error messages
 
@@ -70,10 +89,10 @@ if __name__ == "__main__":
     # Prepare Parameters
     data_path = os.path.join(target_dir, "MIND_large")
 
-    # train_news_file = os.path.join(data_path, "train", r"news.tsv")
-    # train_behaviors_file = os.path.join(data_path, "train", r"behaviors.tsv")
-    # valid_news_file = os.path.join(data_path, "valid", r"news.tsv")
-    # valid_behaviors_file = os.path.join(data_path, "valid", r"behaviors.tsv")
+    train_news_file = os.path.join(data_path, "train", r"news.tsv")
+    train_behaviors_file = os.path.join(data_path, "train", r"behaviors.tsv")
+    valid_news_file = os.path.join(data_path, "valid", r"news.tsv")
+    valid_behaviors_file = os.path.join(data_path, "valid", r"behaviors.tsv")
     test_news_file = os.path.join(data_path, "test", r"news.tsv")
     test_behaviors_file = os.path.join(data_path, "test", r"behaviors.tsv")
     wordEmb_file = os.path.join(data_path, "utils", "embedding_all.npy")
@@ -101,14 +120,28 @@ if __name__ == "__main__":
     model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
     print("setup time: ", timedelta(seconds=time.time() - start_time))
 
-    # Evaluate the model
-    res = model.run_eval(test_news_file, test_behaviors_file)
-    print("eval time: ", timedelta(seconds=time.time() - start_time))
-    print("results: ", res)
+    if args.fit:
+        # Save stdout to a file
+        sys.stdout = open(os.path.join(data_path, "results-fit.txt"), "w")
+        # Fit the model with the test set
+        model.fit(
+            train_news_file,
+            train_behaviors_file,
+            valid_news_file,
+            valid_behaviors_file,
+            test_news_file,
+            test_behaviors_file,
+        )
+        # Return stdout to normal
+        sys.stdout = sys.__stdout__
+        print("fit time: ", timedelta(seconds=time.time() - start_time))
+    else:
+        res = model.run_eval(test_news_file, test_behaviors_file)
+        print("eval time: ", timedelta(seconds=time.time() - start_time))
 
-    # Save the evaluation results to a file
-    with open(os.path.join(data_path, "results.txt"), "w") as file:
-        file.write(str(res))
+        # Save the evaluation results to a file
+        with open(os.path.join(data_path, "results-eval.txt"), "w") as file:
+            file.write(str(res))
 
-    print("saved results to ", os.path.join(data_path, "results.txt"))
-    print("overall time: ", timedelta(seconds=time.time() - start_overall_time))
+        print("saved results to ", os.path.join(data_path, "results.txt"))
+        print("overall time: ", timedelta(seconds=time.time() - start_overall_time))
