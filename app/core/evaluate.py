@@ -145,8 +145,19 @@ if __name__ == "__main__":
     start_overall_time = time.time()
     print("system version: {}".format(sys.version))
     print("tensorflow version: {}".format(tf.__version__))
-    physical_devices = tf.config.list_physical_devices("GPU")
-    print("physical devices: ", physical_devices)
+
+    gpus = tf.config.experimental.list_physical_devices("GPU")
+    if gpus:
+        try:
+            # Restrict TensorFlow to only use the specified GPUs
+            tf.config.experimental.set_visible_devices(
+                gpus[0:2], "GPU"
+            )  # Set to the list of GPU devices you want to use
+            logical_gpus = tf.config.experimental.list_logical_devices("GPU")
+            print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+        except RuntimeError as e:
+            # Visible devices must be set before GPUs have been initialized
+            print("gpu error: ", e)
 
     # Prepare Parameters
     data_path = os.path.join(target_dir, "MIND_large")
@@ -214,7 +225,7 @@ if __name__ == "__main__":
 
         # Save the model weights
         if not args.no_save:
-            new_model_path = os.path.join(data_path, "pretrained")
+            new_model_path = os.path.join(data_path, "saved")
             model.model.save_weights(os.path.join(new_model_path, "naml_ckpt"))
             print("saved model to ", os.path.join(new_model_path, "naml_ckpt"))
         else:
