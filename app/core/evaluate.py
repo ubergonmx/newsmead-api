@@ -209,7 +209,7 @@ if __name__ == "__main__":
 
     if args.fit:
         # Save stdout to a file
-        sys.stdout = open(os.path.join(data_path, "results-fit.txt"), "w")
+        # sys.stdout = open(os.path.join(data_path, "results-fit.txt"), "w")
         # Fit the model with the test set
         model.fit(
             train_news_file,
@@ -220,7 +220,7 @@ if __name__ == "__main__":
             new_test_behaviors_file,
         )
         # Return stdout to normal
-        sys.stdout = sys.__stdout__
+        # sys.stdout = sys.__stdout__
         print("fit time: ", timedelta(seconds=time.time() - start_time))
 
         # Save the model weights
