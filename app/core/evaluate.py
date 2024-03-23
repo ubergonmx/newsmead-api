@@ -12,6 +12,35 @@ from datetime import timedelta
 from recommenders.models.newsrec.newsrec_utils import prepare_hparams
 from recommenders.models.newsrec.models.naml import NAMLModel
 from recommenders.models.newsrec.io.mind_all_iterator import MINDAllIterator
+from recommenders.models.deeprec.deeprec_utils import download_deeprec_resources
+from recommenders.models.newsrec.newsrec_utils import get_mind_data_set
+
+
+def download_original_data(data_path):
+    mind_url, mind_train_dataset, mind_dev_dataset, mind_utils = get_mind_data_set(
+        "large"
+    )
+    mind_test_dataset = "MINDlarge_test.zip"
+
+    if not os.path.exists(train_news_file):
+        download_deeprec_resources(
+            mind_url, os.path.join(data_path, "train"), mind_train_dataset
+        )
+
+    if not os.path.exists(valid_news_file):
+        download_deeprec_resources(
+            mind_url, os.path.join(data_path, "valid"), mind_dev_dataset
+        )
+    if not os.path.exists(test_news_file):
+        download_deeprec_resources(
+            mind_url, os.path.join(data_path, "test"), mind_test_dataset
+        )
+    if not os.path.exists(yaml_file):
+        download_deeprec_resources(
+            r"https://recodatasets.z20.web.core.windows.net/newsrec/",
+            os.path.join(data_path, "utils"),
+            mind_utils,
+        )
 
 
 def download(url: str, filepath: str) -> None:
@@ -94,15 +123,15 @@ if __name__ == "__main__":
         help="fit the model with the train, dev, & test set",
     )
     parser.add_argument(
-        "-nd",
-        "--no-dl",
+        "-dl",
+        "--download",
         action="store_true",
-        help="do not download the zip file",
+        help="download the zip file (default: False)",
     )
     parser.add_argument(
         "-u",
         "--url",
-        default="https://filebin.net/19aeuvg2jgix8iol/naml.zip",
+        default="",
         help="direct download link for the zip file",
     )
     parser.add_argument(
@@ -130,16 +159,6 @@ if __name__ == "__main__":
         help="do not add label 0 to test behaviors file",
     )
 
-    args = parser.parse_args()
-
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    target_dir = os.path.join(script_dir, args.dir)
-
-    if not args.no_dl:
-        filepath = os.path.join(target_dir, "MIND.zip")
-        print("downloading and unzipping to: ", filepath)
-        download_and_unzip(args.url, filepath, target_dir)
-
     tf.get_logger().setLevel("ERROR")  # only show error messages
 
     start_overall_time = time.time()
@@ -160,7 +179,22 @@ if __name__ == "__main__":
             print("gpu error: ", e)
 
     # Prepare Parameters
-    data_path = os.path.join(target_dir, "MIND_large")
+
+    args = parser.parse_args()
+    folder_name = "MIND_large"
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    target_dir = os.path.join(script_dir, args.dir)
+    data_path = os.path.join(target_dir, folder_name)
+
+    if args.download:
+        if args.url == "":
+            download_original_data(data_path)
+        else:
+            # your train,test,valid folders must be in one folder called
+            # "MIND_large" or folder_name in root directory
+            filepath = os.path.join(target_dir, f"{folder_name}.zip")
+            print("downloading and unzipping to: ", filepath)
+            download_and_unzip(args.url, filepath, target_dir)
 
     train_news_file = os.path.join(data_path, "train", r"news.tsv")
     train_behaviors_file = os.path.join(data_path, "train", r"behaviors.tsv")
