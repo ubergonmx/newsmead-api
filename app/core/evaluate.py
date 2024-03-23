@@ -260,6 +260,7 @@ if __name__ == "__main__":
         # Save the model weights
         if not args.no_save:
             new_model_path = os.path.join(data_path, "saved")
+            os.makedirs(new_model_path, exist_ok=True)
             model.model.save_weights(os.path.join(new_model_path, "naml_ckpt"))
             print("saved model to ", os.path.join(new_model_path, "naml_ckpt"))
         else:
