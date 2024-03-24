@@ -132,7 +132,7 @@ if __name__ == "__main__":
         "-u",
         "--url",
         default="",
-        help="direct download link for the zip file",
+        help="direct download link for the zip file (default: MIND large dataset)",
     )
     parser.add_argument(
         "-d",
@@ -141,10 +141,16 @@ if __name__ == "__main__":
         help="directory to download and extract the zip to (default: current directory)",
     )
     parser.add_argument(
+        "-md",
+        "--model-dir",
+        default="model",
+        help="directory to load the model from (default: 'model' in <dir arg>/MIND_large/model); this is only used when --fit is not specified",
+    )
+    parser.add_argument(
         "-e",
         "--epoch",
         default=5,
-        help="number of epochs to train the model",
+        help="number of epochs to train the model (default: 5)",
     )
     parser.add_argument(
         "-ns",
@@ -208,7 +214,7 @@ if __name__ == "__main__":
     vertDict_file = os.path.join(data_path, "utils", "vert_dict.pkl")
     subvertDict_file = os.path.join(data_path, "utils", "subvert_dict.pkl")
     yaml_file = os.path.join(data_path, "utils", r"naml.yaml")
-    model_path = os.path.join(data_path, "model")
+    model_path = os.path.join(data_path, args.model_dir)
 
     new_test_behaviors_file = os.path.join(
         data_path, "test", r"behaviors_with_labels.tsv"
@@ -238,6 +244,7 @@ if __name__ == "__main__":
         print("model epochs: ", model.hparams.epochs)
         if args.epoch:
             model.hparams.epochs = args.epoch
+            print("set model epochs to: ", model.hparams.epochs)
     except:
         print("cannot print and set model epoch")
 
