@@ -122,8 +122,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-e",
         "--epoch",
-        default=5,
-        help="number of epochs to train the model (default: 5)",
+        type=int,
+        default=10,
+        help="number of epochs to train the model (default: 10)",
     )
     parser.add_argument(
         "-ns",
