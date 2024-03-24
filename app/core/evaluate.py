@@ -266,6 +266,9 @@ if __name__ == "__main__":
         else:
             print("model not saved")
     else:
+        if not os.path.exists(model_path):
+            print("model not found")
+            sys.exit(1)
         # Load the weights saved from the model trained above
         model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
         print("setup time: ", timedelta(seconds=time.time() - start_time))
