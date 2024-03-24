@@ -126,7 +126,7 @@ if __name__ == "__main__":
         "-dl",
         "--download",
         action="store_true",
-        help="download the zip file (default: False)",
+        help="download the zip file",
     )
     parser.add_argument(
         "-u",
