@@ -16,33 +16,6 @@ from recommenders.models.deeprec.deeprec_utils import download_deeprec_resources
 from recommenders.models.newsrec.newsrec_utils import get_mind_data_set
 
 
-def download_original_data(data_path):
-    mind_url, mind_train_dataset, mind_dev_dataset, mind_utils = get_mind_data_set(
-        "large"
-    )
-    mind_test_dataset = "MINDlarge_test.zip"
-
-    if not os.path.exists(train_news_file):
-        download_deeprec_resources(
-            mind_url, os.path.join(data_path, "train"), mind_train_dataset
-        )
-
-    if not os.path.exists(valid_news_file):
-        download_deeprec_resources(
-            mind_url, os.path.join(data_path, "valid"), mind_dev_dataset
-        )
-    if not os.path.exists(test_news_file):
-        download_deeprec_resources(
-            mind_url, os.path.join(data_path, "test"), mind_test_dataset
-        )
-    if not os.path.exists(yaml_file):
-        download_deeprec_resources(
-            r"https://recodatasets.z20.web.core.windows.net/newsrec/",
-            os.path.join(data_path, "utils"),
-            mind_utils,
-        )
-
-
 def download(url: str, filepath: str) -> None:
     r = requests.get(url, stream=True, allow_redirects=True)
     if r.status_code == 200:
@@ -192,16 +165,6 @@ if __name__ == "__main__":
     target_dir = os.path.join(script_dir, args.dir)
     data_path = os.path.join(target_dir, folder_name)
 
-    if args.download:
-        if args.url == "":
-            download_original_data(data_path)
-        else:
-            # your train,test,valid folders must be in one folder called
-            # "MIND_large" or folder_name in root directory
-            filepath = os.path.join(target_dir, f"{folder_name}.zip")
-            print("downloading and unzipping to: ", filepath)
-            download_and_unzip(args.url, filepath, target_dir)
-
     train_news_file = os.path.join(data_path, "train", r"news.tsv")
     train_behaviors_file = os.path.join(data_path, "train", r"behaviors.tsv")
     valid_news_file = os.path.join(data_path, "valid", r"news.tsv")
@@ -219,6 +182,40 @@ if __name__ == "__main__":
     new_test_behaviors_file = os.path.join(
         data_path, "test", r"behaviors_with_labels.tsv"
     )
+
+    # Download the MIND dataset (default MIND large dataset or custom URL)
+    if args.download:
+        if args.url == "":
+            mind_url, mind_train_dataset, mind_dev_dataset, mind_utils = (
+                get_mind_data_set("large")
+            )
+            mind_test_dataset = "MINDlarge_test.zip"
+
+            if not os.path.exists(train_news_file):
+                download_deeprec_resources(
+                    mind_url, os.path.join(data_path, "train"), mind_train_dataset
+                )
+
+            if not os.path.exists(valid_news_file):
+                download_deeprec_resources(
+                    mind_url, os.path.join(data_path, "valid"), mind_dev_dataset
+                )
+            if not os.path.exists(test_news_file):
+                download_deeprec_resources(
+                    mind_url, os.path.join(data_path, "test"), mind_test_dataset
+                )
+            if not os.path.exists(yaml_file):
+                download_deeprec_resources(
+                    r"https://recodatasets.z20.web.core.windows.net/newsrec/",
+                    os.path.join(data_path, "utils"),
+                    mind_utils,
+                )
+        else:
+            # your train,test,valid folders must be in one folder called
+            # "MIND_large" or folder_name in root directory of the zip file
+            filepath = os.path.join(target_dir, f"{folder_name}.zip")
+            print("downloading and unzipping to: ", filepath)
+            download_and_unzip(args.url, filepath, target_dir)
 
     if not args.no_label:
         # Add label 0 to test behaviors file and save the updated data to a new file
