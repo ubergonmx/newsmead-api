@@ -40,6 +40,29 @@ async def recommended_articles(
         log.info(f"history count: {len(history)}")
         log.info(f"articles count: {len(articles)}")
 
+        if len(history) == 0:
+            preferred_categories = await db.get_user_preferences(user_id)
+            log.info(f"preferred_categories: {preferred_categories}")
+
+            if len(preferred_categories) > 0:
+                # All articles with preferred categories will be on the top
+                log.info("Sorting articles by preferred categories...")
+                preferred_articles = []
+                other_articles = []
+                for article in articles:
+                    if article.category in preferred_categories:
+                        preferred_articles.append(article)
+                    else:
+                        other_articles.append(article)
+
+                articles = preferred_articles + other_articles
+
+            return {
+                "status": "success",
+                "totalResults": len(articles),
+                "articles": articles,
+            }
+
         # Limit history to first 50
         history = history[:50]
         impression_news = " ".join(
