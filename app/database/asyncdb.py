@@ -347,6 +347,14 @@ class AsyncDatabase:
         history = user_ref.collection("history")
         return [doc.id for doc in history.stream()]
 
+    def _get_user_preferences(self, user_id: str) -> list[str]:
+        db = self._get_firestore_db()
+        user_ref = db.collection("users").document(user_id)
+        if not user_ref.get().exists:
+            return ["-1"]
+        categories = user_ref.collection("preferences").document("categories")
+        return categories.get().to_dict().get("categories", [])
+
     async def get_user_history(self, user_id: str) -> list[str]:
         history = await asyncio.get_event_loop().run_in_executor(
             None, self._get_user_history, user_id
@@ -354,6 +362,14 @@ class AsyncDatabase:
         if history and history[0] == "-1":
             raise ValueError(f"User {user_id} does not exist.")
         return history
+
+    async def get_user_preferences(self, user_id: str) -> list[str]:
+        preferences = await asyncio.get_event_loop().run_in_executor(
+            None, self._get_user_preferences, user_id
+        )
+        if preferences and preferences[0] == "-1":
+            raise ValueError(f"User {user_id} does not exist.")
+        return preferences
 
 
 async def get_db():
