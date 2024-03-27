@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 async def check_and_fix_empty_articles(app: FastAPI):
     from app.core.recommender import Recommender
 
-    recommender = Recommender()
+    recommender = app.state.recommender
     log.info("Checking and fixing empty articles...")
     proxy = ProxyScraper()
     while proxy.get_proxies() == []:
@@ -30,14 +30,13 @@ async def check_and_fix_empty_articles(app: FastAPI):
             await db.update_empty_articles(articles)
         await recommender.save_news(db)
     recommender.load_news()
-    app.state.recommender = recommender
     log.info("Empty articles checked and fixed.")
 
 
 async def scrape_all_providers(app: FastAPI):
     from app.core.recommender import Recommender
 
-    recommender = Recommender()
+    recommender = app.state.recommender
     log.info("Scraping all providers...")
     proxy = ProxyScraper()
     while proxy.get_proxies() == []:
@@ -50,7 +49,6 @@ async def scrape_all_providers(app: FastAPI):
             await db.insert_articles(articles)
         await recommender.save_news(db)
     recommender.load_news()
-    app.state.recommender = recommender
     log.info("All providers scraped.")
 
 
