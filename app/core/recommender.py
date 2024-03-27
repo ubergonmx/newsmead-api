@@ -129,6 +129,8 @@ class Recommender:
 
     def load_news(self, news_file: str = None):
         log.info(f"Loading news...")
+        if hasattr(self.model.test_iterator, "news_title_index"):
+            del self.model.test_iterator.news_title_index
         self.model.news_vecs = self.model.run_news(news_file or self.news_file)
         log.info(f"Loaded news")
 
@@ -150,7 +152,6 @@ class Recommender:
 
             start_time = time.time()
             if hasattr(self.model.test_iterator, "impr_indexes"):
-                print("has attr")
                 del self.model.test_iterator.impr_indexes
             self.model.user_vecs = self.model.run_user(None, behavior_file)
             score = {}
