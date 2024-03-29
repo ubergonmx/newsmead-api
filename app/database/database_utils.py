@@ -9,7 +9,6 @@ log = logging.getLogger(__name__)
 db_name = os.getenv("DB_NAME", "newsmead.sqlite")
 db_tbl_articles = "articles"
 
-# [ ] TODO: Refactor queries
 db_create_article_table_query = f"""
     CREATE TABLE IF NOT EXISTS {db_tbl_articles}
     (
@@ -39,9 +38,6 @@ db_delete_duplicates_query = f"""
     )"""
 
 
-# [ ] TODO: Add try-except blocks to all functions
-
-
 # Get DB helper function
 def get_db():
     return sqlite3.connect(db_name)
@@ -61,7 +57,6 @@ def run_query(conn, query):
     conn.commit()
 
 
-# [ ] TODO: Add optional table_name parameter and refactor
 def get_articles(conn):
     conn = get_db() if conn is None else conn
     articles = conn.execute(f"SELECT * FROM {db_tbl_articles}").fetchall()
