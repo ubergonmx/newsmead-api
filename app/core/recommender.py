@@ -55,6 +55,7 @@ class Recommender:
         limit = limit or self.model.hparams.body_size
         clean_text = (
             text.replace("\n", " ")
+            .replace("\t", " ")
             .replace("/", "")
             .replace("\\", "")
             .replace(r"\u2014", "")
@@ -70,7 +71,7 @@ class Recommender:
                 article[0],
                 article[2],
                 article[2],
-                article[4],
+                article[4].replace("\t", " "),
                 self.limit_words(article[7]),
                 article[6],
                 "[skip]",
