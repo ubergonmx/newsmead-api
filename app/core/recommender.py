@@ -131,8 +131,30 @@ class Recommender:
         log.info(f"Loading news...")
         if hasattr(self.model.test_iterator, "news_title_index"):
             del self.model.test_iterator.news_title_index
-        self.model.news_vecs = self.model.run_news(news_file or self.news_file)
+
+        # catch error
+        try:
+            self.model.news_vecs = self.model.run_news(news_file or self.news_file)
+        except Exception as e:
+            log.error(f"Error loading news: {e}")
+            self.validate_news()
+            self.model.news_vecs = self.model.run_news(news_file or self.news_file)
+
         log.info(f"Loaded news")
+
+    def validate_news(self):
+        log.info(f"Validating news...")
+        try:
+            # open news_file and check each line if it has 8 columns
+            with open(self.news_file, "r") as f:
+                for i, line in enumerate(f):
+                    if len(line.strip().split("\t")) != 8:
+                        raise Exception(
+                            f"Invalid line in news_file: {i+1} -> {line[:50]}"
+                        )
+            log.info(f"Validated news")
+        except Exception as e:
+            log.error(f"Error validating news: {e}")
 
     def predict(self, behavior: str) -> tuple[list[str], dict]:
         behavior_file = None
