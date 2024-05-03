@@ -6,6 +6,7 @@ from app.database.asyncdb import AsyncDatabase
 import logging.config
 import dotenv
 import os
+import zipfile
 
 # Configure logging
 log = logging.getLogger(__name__)
@@ -48,6 +49,13 @@ def get_webcrawler_dir():
 def create_dir(dir_path) -> str:
     os.makedirs(dir_path, exist_ok=True)
     return dir_path
+
+
+def create_zip(dir_path: str, zip_path: str):
+    with zipfile.ZipFile(zip_path, "w") as zipf:
+        for root, _, files in os.walk(dir_path):
+            for file in files:
+                zipf.write(os.path.join(root, file), file)
 
 
 # Configure startup and shutdown events
