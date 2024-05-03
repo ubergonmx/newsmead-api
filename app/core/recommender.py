@@ -66,6 +66,9 @@ class Recommender:
 
     async def write_article_to_tsv(self, writer, article):
         # article_id:0, category:2, title:4, body:7, url:6
+        # skip id 27415
+        if article[0] == "27415":
+            return
         await writer.writerow(
             [
                 article[0],
