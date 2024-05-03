@@ -54,9 +54,7 @@ async def add_task(background_tasks: BackgroundTasks, func: Callable, *args, **k
 
 @router.get("/cafea", include_in_schema=False)
 async def check_and_fix_empty_articles(bg: BackgroundTasks, request: Request):
-    await add_task(
-        bg, internals.check_and_fix_empty_articles, request.app.state.recommender
-    )
+    await add_task(bg, internals.check_and_fix_empty_articles, request.app)
     return {"message": "Check and fix empty articles started"}
 
 
@@ -66,7 +64,7 @@ async def scrape_all_providers(
 ):
     if key != os.getenv("SECRET_KEY"):
         raise HTTPException(status_code=403, detail="Invalid keyphrase")
-    await add_task(bg, internals.scrape_all_providers, request.app.state.recommender)
+    await add_task(bg, internals.scrape_all_providers, request.app)
     return {"message": "Scrape all providers started"}
 
 
