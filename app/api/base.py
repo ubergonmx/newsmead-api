@@ -60,7 +60,7 @@ async def create_upload_db(
     return {"message": "Database uploaded successfully"}
 
 
-@router.get("/download-log", include_in_schema=False)
+@router.get("/download-logs", include_in_schema=False)
 async def download_log(key: str = Depends(verify_key)):
     log_dir = config.get_log_dir()
     log_zip = os.path.join(config.get_project_root(), "logs.zip")
