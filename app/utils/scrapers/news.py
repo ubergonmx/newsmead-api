@@ -206,6 +206,7 @@ class ScraperStrategy(ABC):
 
         mapped_category = self.config.category_mapping[category]
         rss_url = self.config.rss_url.replace("[category]", mapped_category)
+        rss_response = None
         while retries > 0:
             log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
             proxy = proxy_scraper.get_next_proxy()
@@ -229,6 +230,10 @@ class ScraperStrategy(ABC):
             if retries == 0:
                 log.error(f"Failed to fetch RSS feed for {category}")
                 return []
+
+        if rss_response is None:
+            log.error(f"No response from RSS feed for {category}")
+            return []
 
         if save:
             await self.save_rss(rss_response.content, category)
