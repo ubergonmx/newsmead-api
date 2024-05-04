@@ -1,6 +1,6 @@
 from app.utils.scrapers.proxy import ProxyScraper
 from fastapi import APIRouter, HTTPException, UploadFile, File, Query, Depends
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 import app.backend.config as config
 import os
 import datetime
@@ -15,8 +15,8 @@ async def favicon():
 
 @router.get("/")
 def read_root():
-    # return RedirectResponse(url="https://newsmead-docs.vercel.app")
-    return {"message": "Welcome to NewsMead API"}
+    return RedirectResponse(url="https://newsmead-docs.vercel.app")
+    # return {"message": "Welcome to NewsMead API"}
 
 
 @router.get("/status")
