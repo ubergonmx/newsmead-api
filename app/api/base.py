@@ -16,7 +16,6 @@ async def favicon():
 @router.get("/")
 def read_root():
     return RedirectResponse(url="https://newsmead-docs.vercel.app")
-    # return {"message": "Welcome to NewsMead API"}
 
 
 @router.get("/status")
