@@ -10,19 +10,19 @@
 #
 # ## Properties of NAML:
 # - NAML is a multi-view neural news recommendation approach.
-# - It uses news title, news body, news vert and news subvert to get news repersentations. And it uses user historical behaviors to learn user representations.
+# - It uses news title, news body, news vert and news subvert to get news representations. And it uses user historical behaviors to learn user representations.
 # - NAML uses additive attention to learn informative news and user representations by selecting important words and news.
 # - Due to some legal issue, MIND dataset does not release news body. Therefore, we use news abstract instead.
 #
 # ## Data format:
-# For quicker training and evaluaiton, we sample MINDdemo dataset of 5k users from [MIND small dataset](https://msnews.github.io/). The MINDdemo dataset has the same file format as MINDsmall and MINDlarge. If you want to try experiments on MINDsmall
-#  and MINDlarge, please change the dowload source.
+# For quicker training and evaluation, we sample MINDdemo dataset of 5k users from [MIND small dataset](https://msnews.github.io/). The MINDdemo dataset has the same file format as MINDsmall and MINDlarge. If you want to try experiments on MINDsmall
+#  and MINDlarge, please change the download source.
 #  Select the MIND_type parameter from ['large', 'small', 'demo'] to choose dataset.
 #
 # **MINDdemo_train** is used for training, and **MINDdemo_dev** is used for evaluation. Training data and evaluation data are composed of a news file and a behaviors file. You can find more detailed data description in [MIND repo](https://github.com/msnews/msnews.github.io/blob/master/assets/doc/introduction.md)
 #
 # ### news data
-# This file contains news information including newsid, category, subcatgory, news title, news abstarct, news url and entities in news title, entities in news abstarct.
+# This file contains news information including newsid, category, subcategory, news title, news abstract, news url and entities in news title, entities in news abstract.
 # One simple example: <br>
 #
 # `N46466	lifestyle	lifestyleroyals	The Brands Queen Elizabeth, Prince Charles, and Prince Philip Swear By	Shop the notebooks, jackets, and more that the royals can't live without.	https://www.msn.com/en-us/lifestyle/lifestyleroyals/the-brands-queen-elizabeth,-prince-charles,-and-prince-philip-swear-by/ss-AAGH0ET?ocid=chopendata	[{"Label": "Prince Philip, Duke of Edinburgh", "Type": "P", "WikidataId": "Q80976", "Confidence": 1.0, "OccurrenceOffsets": [48], "SurfaceForms": ["Prince Philip"]}, {"Label": "Charles, Prince of Wales", "Type": "P", "WikidataId": "Q43274", "Confidence": 1.0, "OccurrenceOffsets": [28], "SurfaceForms": ["Prince Charles"]}, {"Label": "Elizabeth II", "Type": "P", "WikidataId": "Q9682", "Confidence": 0.97, "OccurrenceOffsets": [11], "SurfaceForms": ["Queen Elizabeth"]}]	[]`
@@ -30,11 +30,11 @@
 #
 # In general, each line in data file represents information of one piece of news: <br>
 #
-# `[News ID] [Category] [Subcategory] [News Title] [News Abstrct] [News Url] [Entities in News Title] [Entities in News Abstract] ...`
+# `[News ID] [Category] [Subcategory] [News Title] [News Abstract] [News Url] [Entities in News Title] [Entities in News Abstract] ...`
 #
 # <br>
 #
-# We generate a word_dict file to tranform words in news title and news abstract to word indexes, and a embedding matrix is initted from pretrained glove embeddings.
+# We generate a word_dict file to transform words in news title and news abstract to word indexes, and a embedding matrix is initiated from pretrained glove embeddings.
 #
 # ### behaviors data
 # One simple example: <br>
