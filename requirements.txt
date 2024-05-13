@@ -26,3 +26,4 @@ aiocsv==1.2.5
 firebase-admin==6.4.0
 azure-ai-translation-text==1.0.0b1
 google-cloud-translate==3.15.3
+asyncpg==0.29.0
