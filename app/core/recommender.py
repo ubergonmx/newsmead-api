@@ -24,7 +24,7 @@ from recommenders.models.deeprec.deeprec_utils import cal_metric
 
 
 class Recommender:
-    def __init__(self):
+    def __init__(self, load_model: bool = True):
         start_time = time.time()
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.data_path = os.path.join(current_dir, "recommender_utils")
@@ -47,9 +47,10 @@ class Recommender:
             subvertDict_file=subvertDict_file,
         )
 
-        self.model = NAMLModel(hparams, MINDAllIterator, seed=42)
-        self.model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
-        log.info(f"Model setup time: {time.time() - start_time}")
+        if load_model:
+            self.model = NAMLModel(hparams, MINDAllIterator, seed=42)
+            self.model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
+            log.info(f"Model setup time: {time.time() - start_time}")
 
     def limit_words(self, text: str, limit: int = None) -> str:
         limit = limit or self.model.hparams.body_size
