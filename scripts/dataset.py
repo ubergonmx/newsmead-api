@@ -6,7 +6,7 @@ import time
 
 
 def translate_text(text: str, source: str = "en", target: str = "fil") -> str:
-    api_key = "api_key"  # os.getenv("AZURE_TRANSLATOR_API_KEY")
+    api_key = "api_key"
     region = "southeastasia"  # os.getenv("AZURE_TRANSLATOR_REGION")
 
     text_translator = TextTranslationClient(
@@ -35,15 +35,18 @@ def translate_text(text: str, source: str = "en", target: str = "fil") -> str:
 
 
 if __name__ == "__main__":
-    # Open the news.tsv file for reading and news_translated.tsv file for writing
     i = 0
+    line_start = 0
+    news_translated = "news_translated (valid).tsv"
 
-    # Count the lines in the news_translated_ta.tsv file
-    with tf.io.gfile.GFile("news_translated_ta.tsv", "r") as wr:
-        line_start = sum(1 for _ in wr) + 1
+    # Check if the news_translated (valid).tsv file exists
+    if tf.io.gfile.exists(news_translated):
+        # Count the lines in the news_translated (valid).tsv file
+        with tf.io.gfile.GFile(news_translated, "r") as wr:
+            line_start = sum(1 for _ in wr) + 1
 
     with tf.io.gfile.GFile("news.tsv", "r") as rd, tf.io.gfile.GFile(
-        "news_translated_ta.tsv", "a"
+        news_translated, "a"
     ) as wr:
         for line in rd:
             i += 1
