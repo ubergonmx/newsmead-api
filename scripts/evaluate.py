@@ -6,6 +6,7 @@ import tensorflow as tf
 import math
 import requests
 import argparse
+import yaml
 from tqdm import tqdm
 from datetime import timedelta
 
@@ -93,7 +94,13 @@ if __name__ == "__main__":
         "-f",
         "--fit",
         action="store_true",
-        help="fit the model with the train, dev, & test set",
+        help="fit the model with the train and valid set",
+    )
+    parser.add_argument(
+        "-l",
+        "--load",
+        action="store_true",
+        help="load the model from the model directory; used with -f to finetune instead of training from scratch",
     )
     parser.add_argument(
         "-dl",
@@ -117,14 +124,14 @@ if __name__ == "__main__":
         "-md",
         "--model-dir",
         default="model",
-        help="directory to load the model from (default: 'model' in <dir arg>/MIND_large/model); this is only used when --fit is not specified",
+        help="directory to load the model from (default: 'model' in <dir arg>/MIND_large/model)",
     )
     parser.add_argument(
         "-e",
         "--epoch",
         type=int,
-        default=10,
-        help="number of epochs to train the model (default: 10)",
+        default=5,
+        help="number of epochs to train the model (default: 5)",
     )
     parser.add_argument(
         "-ns",
@@ -133,10 +140,10 @@ if __name__ == "__main__":
         help="do not save the model weights",
     )
     parser.add_argument(
-        "-nl",
-        "--no-label",
+        "-al",
+        "--add-label",
         action="store_true",
-        help="do not add label 0 to test behaviors file",
+        help="add label 0 to test behaviors file",
     )
 
     tf.get_logger().setLevel("ERROR")  # only show error messages
@@ -159,24 +166,23 @@ if __name__ == "__main__":
             print("gpu error: ", e)
 
     # Prepare Parameters
-
     args = parser.parse_args()
     folder_name = "MIND_large"
     script_dir = os.path.dirname(os.path.abspath(__file__))
     target_dir = os.path.join(script_dir, args.dir)
     data_path = os.path.join(target_dir, folder_name)
 
-    train_news_file = os.path.join(data_path, "train", r"news.tsv")
+    train_news_file = os.path.join(data_path, "train", r"news_translated.tsv")
     train_behaviors_file = os.path.join(data_path, "train", r"behaviors.tsv")
-    valid_news_file = os.path.join(data_path, "valid", r"news.tsv")
+    valid_news_file = os.path.join(data_path, "valid", r"news_translated.tsv")
     valid_behaviors_file = os.path.join(data_path, "valid", r"behaviors.tsv")
-    test_news_file = os.path.join(data_path, "test", r"news.tsv")
-    test_behaviors_file = os.path.join(data_path, "test", r"behaviors.tsv")
-    wordEmb_file = os.path.join(data_path, "utils", "embedding_all.npy")
-    userDict_file = os.path.join(data_path, "utils", "uid2index.pkl")
-    wordDict_file = os.path.join(data_path, "utils", "word_dict_all.pkl")
-    vertDict_file = os.path.join(data_path, "utils", "vert_dict.pkl")
-    subvertDict_file = os.path.join(data_path, "utils", "subvert_dict.pkl")
+    # test_news_file = os.path.join(data_path, "test", r"news.tsv")
+    # test_behaviors_file = os.path.join(data_path, "test", r"behaviors.tsv")
+    wordEmb_file = os.path.join(data_path, "utils", "embedding_all_translated.npy")
+    userDict_file = os.path.join(data_path, "utils", "uid2index_new.pkl")
+    wordDict_file = os.path.join(data_path, "utils", "word_dict_all_translated.pkl")
+    vertDict_file = os.path.join(data_path, "utils", "vert_dict_new.pkl")
+    subvertDict_file = os.path.join(data_path, "utils", "subvert_dict_new.pkl")
     yaml_file = os.path.join(data_path, "utils", r"naml.yaml")
     model_path = os.path.join(data_path, args.model_dir)
 
@@ -211,6 +217,19 @@ if __name__ == "__main__":
                     os.path.join(data_path, "utils"),
                     mind_utils,
                 )
+
+            # Load YAML data from file
+            with open(yaml_file, "r") as file:
+                yaml_data = yaml.safe_load(file)
+
+            # Update vert_num to 18
+            yaml_data["data"]["vert_num"] = 18
+            yaml_data["data"]["subvert_num"] = 285
+
+            # Save the updated YAML data back to the file
+            with open(yaml_file, "w") as file:
+                yaml.dump(yaml_data, file)
+
         else:
             # your train,test,valid folders must be in one folder called
             # "MIND_large" or folder_name in root directory of the zip file
@@ -218,7 +237,7 @@ if __name__ == "__main__":
             print("downloading and unzipping to: ", filepath)
             download_and_unzip(args.url, filepath, target_dir)
 
-    if not args.no_label:
+    if args.add_label:
         # Add label 0 to test behaviors file and save the updated data to a new file
         print("adding label 0 to test behaviors file...")
         add_label_to_news(test_behaviors_file, new_test_behaviors_file)
@@ -247,20 +266,26 @@ if __name__ == "__main__":
         print("cannot print and set model epoch")
 
     if args.fit:
-        # Save stdout to a file
-        # sys.stdout = open(os.path.join(data_path, "results-fit.txt"), "w")
-        # Fit the model with the test set
+        method = "fit"
+        if args.load:
+            method = "finetune"
+            if not os.path.exists(model_path):
+                print("model not found")
+                sys.exit(1)
+            # Load the weights saved from the model trained above
+            model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
+            print("loaded model from ", os.path.join(model_path, "naml_ckpt"))
+
+        # Fit/Finetune the model (currently test set isn't working)
         model.fit(
             train_news_file,
             train_behaviors_file,
             valid_news_file,
             valid_behaviors_file,
-            test_news_file,
-            new_test_behaviors_file,
+            # test_news_file,
+            # new_test_behaviors_file,
         )
-        # Return stdout to normal
-        # sys.stdout = sys.__stdout__
-        print("fit time: ", timedelta(seconds=time.time() - start_time))
+        print("{method} time: ", timedelta(seconds=time.time() - start_time))
 
         # Save the model weights
         if not args.no_save:
