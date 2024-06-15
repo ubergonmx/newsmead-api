@@ -123,8 +123,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "-md",
         "--model-dir",
-        default="model",
-        help="directory to load the model from (default: 'model' in <dir arg>/MIND_large/model)",
+        nargs="+",
+        default=["model"],
+        help="directories to load the models from (default: 'model' in <dir arg>/MIND_large/model)",
     )
     parser.add_argument(
         "-e",
@@ -184,7 +185,7 @@ if __name__ == "__main__":
     vertDict_file = os.path.join(data_path, "utils", "vert_dict_new.pkl")
     subvertDict_file = os.path.join(data_path, "utils", "subvert_dict_new.pkl")
     yaml_file = os.path.join(data_path, "utils", r"naml.yaml")
-    model_path = os.path.join(data_path, args.model_dir)
+    model_path = [os.path.join(data_path, model_dir) for model_dir in args.model_dir]
 
     new_test_behaviors_file = os.path.join(
         data_path, "test", r"behaviors_with_labels.tsv"
