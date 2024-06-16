@@ -135,7 +135,7 @@ class ScraperStrategy(ABC):
     async def scrape_article(self, article: Article, proxy: dict = None) -> tuple:
         headers = {"User-Agent": UserAgent().random}
         async with httpx.AsyncClient(
-            headers=headers, follow_redirects=True, proxies=proxy
+            headers=headers, follow_redirects=True, proxy=proxy
         ) as client:
             try:
                 response = await client.get(article.url)
@@ -213,7 +213,7 @@ class ScraperStrategy(ABC):
             headers = {"User-Agent": UserAgent().random}
             try:
                 async with httpx.AsyncClient(
-                    headers=headers, proxies=proxy, follow_redirects=True
+                    headers=headers, proxy=proxy, follow_redirects=True
                 ) as client:
                     rss_response = await client.get(rss_url)
             except httpx.HTTPError as e:

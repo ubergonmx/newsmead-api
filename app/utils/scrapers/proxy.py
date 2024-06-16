@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import logging
 import json
+import httpx
 
 # Configure logging
 log = logging.getLogger(__name__)
@@ -71,12 +72,22 @@ class ProxyScraper:
             finally:
                 await browser.close()
 
-    def get_next_proxy(self) -> dict[str, str]:
+    def get_next_proxy(self) -> str:
         if not self.proxies:
             return None
         proxy = self.proxies[self.current_proxy_index]
         self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
-        return {"http://": proxy} if proxy.startswith("http:") else {"https://": proxy}
+        return proxy
+
+    def get_next_proxy_mount(self) -> dict[str, str]:
+        if not self.proxies:
+            return None
+        proxy = self.proxies[self.current_proxy_index]
+        self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
+        if proxy.startswith("http:"):
+            return {"http://": httpx.HTTPTransport(proxy=proxy)}
+        elif proxy.startswith("http:"):
+            return {"https://": httpx.HTTPSTransport(proxy=proxy)}
 
     def get_proxies(self):
         return self.proxies
