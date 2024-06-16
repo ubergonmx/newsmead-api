@@ -29,8 +29,14 @@ class Recommender:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.data_path = os.path.join(current_dir, "recommender_utils")
         wordEmb_file = os.path.join(self.data_path, "utils", "embedding_all.npy")
+        wordEmb_translated_file = os.path.join(
+            self.data_path, "utils", "embedding_all_translated.npy"
+        )
         userDict_file = os.path.join(self.data_path, "utils", "uid2index.pkl")
         wordDict_file = os.path.join(self.data_path, "utils", "word_dict_all.pkl")
+        wordDict_translated_file = os.path.join(
+            self.data_path, "utils", "word_dict_all_translated.pkl"
+        )
         vertDict_file = os.path.join(self.data_path, "utils", "vert_dict.pkl")
         subvertDict_file = os.path.join(self.data_path, "utils", "subvert_dict.pkl")
         yaml_file = os.path.join(self.data_path, "utils", "naml.yaml")
@@ -40,8 +46,16 @@ class Recommender:
 
         hparams = prepare_hparams(
             yaml_file,
-            wordEmb_file=wordEmb_file,
-            wordDict_file=wordDict_file,
+            wordEmb_file=(
+                wordEmb_file
+                if os.getenv("MODEL_LANG", "en") == "en"
+                else wordEmb_translated_file
+            ),
+            wordDict_file=(
+                wordDict_file
+                if os.getenv("MODEL_LANG", "en") == "en"
+                else wordDict_translated_file
+            ),
             userDict_file=userDict_file,
             vertDict_file=vertDict_file,
             subvertDict_file=subvertDict_file,
