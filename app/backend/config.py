@@ -73,7 +73,9 @@ async def lifespan(app: FastAPI):
         app.state.recommender = Recommender()
         async with AsyncDatabase() as db:
             await app.state.recommender.save_news(db)
-        app.state.recommender.load_news()
+
+        if os.getenv("LOAD_NEWS_ON_STARTUP", "true").lower() == "true":
+            app.state.recommender.load_news()
 
         # Add scheduler jobs
         log.info("Adding scheduler jobs...")
