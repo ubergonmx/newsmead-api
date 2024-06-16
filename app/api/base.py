@@ -59,6 +59,16 @@ async def create_upload_db(
     return {"message": "Database uploaded successfully"}
 
 
+@router.post("/download-news", include_in_schema=False)
+async def download_news(key: str = Depends(verify_key)):
+    news_path = os.path.join(
+        config.get_project_root(), "app", "core", "recommender_utils", "news.tsv"
+    )
+    return FileResponse(
+        news_path, media_type="application/octet-stream", filename="news.tsv"
+    )
+
+
 @router.get("/download-logs", include_in_schema=False)
 async def download_log(key: str = Depends(verify_key)):
     log_dir = config.get_log_dir()
