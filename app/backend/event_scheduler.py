@@ -11,6 +11,7 @@ import logging.config
 log = logging.getLogger(__name__)
 
 
+# TODO: Make it check_and_fix_articles (this includes empty articles, duplicates, text cleaning (removal of newlines), etc.)
 async def check_and_fix_empty_articles(app: FastAPI):
     from app.core.recommender import Recommender
 

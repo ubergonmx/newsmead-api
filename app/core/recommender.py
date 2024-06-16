@@ -52,8 +52,7 @@ class Recommender:
             self.model.model.load_weights(os.path.join(model_path, "naml_ckpt"))
             log.info(f"Model setup time: {time.time() - start_time}")
 
-    def limit_words(self, text: str, limit: int = None) -> str:
-        limit = limit or self.model.hparams.body_size
+    def preprocess_text(self, text: str) -> str:
         clean_text = (
             text.replace("\n", " ")
             .replace("\t", " ")
@@ -62,20 +61,21 @@ class Recommender:
             .replace(r"\u2014", "")
             .strip()
         )
-        words = clean_text.split()
+        return clean_text
+
+    def limit_words(self, text: str, limit: int = None) -> str:
+        words = self.preprocess_text(text).split()
+        limit = limit or self.model.hparams.body_size
         return " ".join(words[:limit])
 
     async def write_article_to_tsv(self, writer, article):
         # article_id:0, category:2, title:4, body:7, url:6
-        # skip id 27415
-        if article[0] == 27415:
-            return
         await writer.writerow(
             [
                 article[0],
                 article[2],
                 article[2],
-                article[4].replace("\t", " "),
+                self.preprocess_text(article[4]),
                 self.limit_words(article[7]),
                 article[6],
                 "[skip]",
