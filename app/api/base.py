@@ -59,7 +59,7 @@ async def create_upload_db(
     return {"message": "Database uploaded successfully"}
 
 
-@router.post("/download-news", include_in_schema=False)
+@router.get("/download-news", include_in_schema=False)
 async def download_news(key: str = Depends(verify_key)):
     news_path = os.path.join(
         config.get_project_root(), "app", "core", "recommender_utils", "news.tsv"
