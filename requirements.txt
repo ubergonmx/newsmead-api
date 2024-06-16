@@ -2,7 +2,7 @@ fastapi==0.105.0
 uvicorn==0.24.0.post1
 gunicorn==21.2.0
 readtime==3.0.0
-recommenders==1.1.1
+recommenders==1.2.0
 colorlog==6.8.0
 newspaper3k==0.2.8
 httpx==0.26.0
