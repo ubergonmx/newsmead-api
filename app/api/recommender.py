@@ -63,8 +63,8 @@ async def recommended_articles(
                 "articles": articles,
             }
 
-        # Limit history to first 50
-        history = history[:50]
+        # Limit history to last 50
+        history = history[-50:]
         impression_news = " ".join(
             [
                 f"{article.article_id}-{'1' if str(article.article_id) in history else '0'}"
