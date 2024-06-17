@@ -102,7 +102,11 @@ async def sync_news(
 ):
     try:
         log.info("Syncing news...")
-        second_db = os.path.join(config.get_project_root(), "newsmead-en.sqlite")
+        db_name = os.getenv("DB_NAME")
+        if os.path.exists(os.path.join(config.get_project_root(), db_name)):
+            db_name = "newsmead-en.sqlite"
+
+        second_db = os.path.join(config.get_project_root(), db_name)
         async with httpx.AsyncClient() as client:
             db = await client.get(
                 "https://newsmead.southeastasia.cloudapp.azure.com/download-db",
