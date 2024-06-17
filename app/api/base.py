@@ -103,8 +103,8 @@ async def sync_news(
     try:
         log.info("Syncing news...")
         db_name = os.getenv("DB_NAME")
-        if os.path.exists(os.path.join(config.get_project_root(), db_name)):
-            db_name = "newsmead-en.sqlite"
+        # if os.path.exists(os.path.join(config.get_project_root(), db_name)):
+        #     db_name = "newsmead-en.sqlite"
 
         second_db = os.path.join(config.get_project_root(), db_name)
         async with httpx.AsyncClient() as client:
@@ -114,7 +114,7 @@ async def sync_news(
             )
             async with aiofiles.open(second_db, "wb") as f:
                 await f.write(db.content)
-        await db.merge_articles(second_db)
+        # await db.merge_articles(second_db)
         await request.app.state.recommender.save_news(db)
         request.app.state.recommender.load_news()
         return {"message": "News synced successfully"}
