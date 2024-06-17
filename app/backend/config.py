@@ -78,8 +78,9 @@ async def lifespan(app: FastAPI):
             app.state.recommender.load_news()
 
         # Add scheduler jobs
-        log.info("Adding scheduler jobs...")
-        app.state.scheduler = event_scheduler.schedule_jobs(app)
+        if os.getenv("MODEL_LANG", "en") == "en":
+            log.info("Adding scheduler jobs...")
+            app.state.scheduler = event_scheduler.schedule_jobs(app)
 
         yield
     finally:

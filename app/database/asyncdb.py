@@ -222,12 +222,13 @@ class AsyncDatabase:
         log.info(f"Query: {query}")
         log.info(f"Params: {params}")
         results = await self.fetch(query, params)
-        # Filter out non-English articles and articles with empty bodies
+        # Filter out non-matching lang articles and articles with empty bodies
         lang = Lang()
+        language = "ENGLISH" if os.getenv("MODEL_LANG", "en") == "en" else "TAGALOG"
         articles = [
             article
             for article in self._set_articles(results)
-            if article.body and lang.is_english(article.title)
+            if article.body and lang.detect(article.body) == language
         ]
         return articles
 
@@ -370,6 +371,26 @@ class AsyncDatabase:
         if preferences and preferences[0] == "-1":
             raise ValueError(f"User {user_id} does not exist.")
         return preferences
+
+    async def merge_articles(self, second_db_path: str):
+        try:
+            await self.conn.execute("BEGIN")
+            await self.conn.execute(f"ATTACH DATABASE '{second_db_path}' AS second_db")
+            await self.conn.execute(
+                """
+                INSERT INTO articles (date, category, source, title, author, url, body, image_url, read_time)
+                SELECT date, category, source, title, author, url, body, image_url, read_time
+                FROM second_db.articles
+                LEFT JOIN articles ON second_db.articles.url = articles.url
+                WHERE articles.url IS NULL
+                """
+            )
+            await self.conn.commit()
+        except Exception as e:
+            await self.conn.execute("ROLLBACK")
+            raise e
+        finally:
+            await self.conn.execute("DETACH DATABASE second_db")
 
 
 async def get_db():

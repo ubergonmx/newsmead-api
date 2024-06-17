@@ -1,11 +1,16 @@
+from app.database.asyncdb import AsyncDatabase, get_db
 from app.utils.scrapers.proxy import ProxyScraper
-from fastapi import APIRouter, HTTPException, UploadFile, File, Query, Depends
+from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Query, Depends
 from fastapi.responses import FileResponse, RedirectResponse
 import app.backend.config as config
 import os
+import logging
 import datetime
+import aiofiles
+import httpx
 
 router = APIRouter()
+log = logging.getLogger(__name__)
 
 
 @router.get("/favicon.ico", include_in_schema=False)
@@ -87,3 +92,27 @@ async def download_sources(key: str = Depends(verify_key)):
     return FileResponse(
         sources_zip, media_type="application/octet-stream", filename="sources.zip"
     )
+
+
+@router.get("/sync-news", include_in_schema=False)
+async def sync_news(
+    request: Request,
+    key: str = Depends(verify_key),
+    db: AsyncDatabase = Depends(get_db),
+):
+    try:
+        log.info("Syncing news...")
+        second_db = os.path.join(config.get_project_root(), "newsmead-en.sqlite")
+        async with httpx.AsyncClient() as client:
+            db = await client.get(
+                "https://newsmead.southeastasia.cloudapp.azure.com/download-db",
+                params={"key": os.getenv("SECRET_KEY")},
+            )
+            async with aiofiles.open(second_db, "wb") as f:
+                await f.write(db.content)
+        await db.merge_articles(second_db)
+        await request.app.state.recommender.save_news(db)
+        request.app.state.recommender.load_news()
+        return {"message": "News synced successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
