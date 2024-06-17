@@ -1,6 +1,7 @@
 import os
 import aiofiles
 from fastapi import APIRouter, Request, HTTPException, Depends, Query
+import httpx
 from app.backend import config
 from app.core.recommender import Recommender
 from app.database.asyncdb import AsyncDatabase, get_db
