@@ -221,7 +221,7 @@ class ScraperStrategy(ABC):
         rss_response = None
         while retries > 0:
             log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
-            proxy = proxy_scraper.get_next_proxy()
+            proxy = proxy_scraper.get_next_proxy() if retries < 10 else None
             headers = {"User-Agent": UserAgent().random}
             try:
                 async with httpx.AsyncClient(
