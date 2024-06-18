@@ -449,7 +449,7 @@ class AbanteScraper(ScraperStrategy):
         )
 
     def extract_author(self, soup: BeautifulSoup) -> str:
-        return config.default_author
+        return None
 
 
 class NewsScraper:
