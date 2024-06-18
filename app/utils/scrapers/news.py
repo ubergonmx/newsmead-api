@@ -68,12 +68,6 @@ class ScraperStrategy(ABC):
     async def scrape_category(
         self, category: Category, proxy_scraper=None
     ) -> list[Article]:
-        if category.value == "":
-            log.error(
-                f"Skipping scraping for {self._cname()} due to empty category for {category}"
-            )
-            return []
-
         if category in self.config.category_mapping:
             log.info(f"{self._cname()} scraping for {category} started")
 
@@ -222,6 +216,8 @@ class ScraperStrategy(ABC):
 
         mapped_category = self.config.category_mapping[category]
         rss_url = self.config.rss_url.replace("[category]", mapped_category)
+        log.info(f"RSS Feed URL: {rss_url}")
+
         rss_response = None
         while retries > 0:
             log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
@@ -443,7 +439,6 @@ class AbanteScraper(ScraperStrategy):
                 Category.News: "news",
                 Category.Opinion: "op",
                 Category.Sports: "sports3",
-                Category.Technology: "",
                 Category.Lifestyle: "lifestyle",
                 Category.Business: "business",
                 Category.Entertainment: "ent",
