@@ -41,6 +41,7 @@ class Provider(Enum):
     # News5 = "news5"
     ManilaBulletin = "manilabulletin"
     INQUIRER = "inquirer"
+    Abante = "abante"
 
 
 class ScraperConfig(NamedTuple):
@@ -67,6 +68,12 @@ class ScraperStrategy(ABC):
     async def scrape_category(
         self, category: Category, proxy_scraper=None
     ) -> list[Article]:
+        if category.value == "":
+            log.error(
+                f"Skipping scraping for {self._cname()} due to empty category for {category}"
+            )
+            return []
+
         if category in self.config.category_mapping:
             log.info(f"{self._cname()} scraping for {category} started")
 
@@ -146,8 +153,8 @@ class ScraperStrategy(ABC):
                 )
                 return False, article
 
-            if "video" in response.headers["content-type"] or not response.content:
-                log.error(f"Article is a video or has no content: {article.url}")
+            if not response.content:
+                log.error(f"Article has no content: {article.url}")
                 return False, article
 
             soup = BeautifulSoup(response.content, "html.parser")
@@ -180,6 +187,15 @@ class ScraperStrategy(ABC):
             article.url = str(response.url)
             article.image_url = article.image_url or news_article.top_image
             article.read_time = str(readtime.of_text(news_article.text))
+
+            try:
+                if article.movies:
+                    # add movies to article as string "[Video: movies[0]]"
+                    article.body += "\n\n" + "\n\n".join(
+                        [f"[Video: {movie}]" for movie in article.movies]
+                    )
+            except:
+                pass
 
         return True, article
 
@@ -418,6 +434,28 @@ class InquirerScraper(ScraperStrategy):
             return author_link.text.strip() if author_link else None
 
 
+class AbanteScraper(ScraperStrategy):
+    @property
+    def config(self) -> ScraperConfig:
+        return ScraperConfig(
+            provider_name=Provider.Abante.value,
+            category_mapping={
+                Category.News: "news",
+                Category.Opinion: "op",
+                Category.Sports: "sports3",
+                Category.Technology: "",
+                Category.Lifestyle: "lifestyle",
+                Category.Business: "business",
+                Category.Entertainment: "ent",
+            },
+            rss_url="https://www.abante.com.ph/category/[category]/feed/",
+            default_author="Abante News",
+        )
+
+    def extract_author(self, soup: BeautifulSoup) -> str:
+        return config.default_author
+
+
 class NewsScraper:
     def __init__(self, strategy: ScraperStrategy):
         self.strategy = strategy
@@ -444,6 +482,7 @@ provider_strategy_mapping = {
     Provider.ManilaBulletin: ManilaBulletinScraper(),
     Provider.INQUIRER: InquirerScraper(),
     # Provider.News5: News5Scraper(),
+    Provider.Abante: AbanteScraper(),
 }
 
 

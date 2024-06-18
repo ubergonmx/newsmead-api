@@ -1,6 +1,18 @@
+from typing import Callable
+from app.core.recommender import Recommender
 from app.database.asyncdb import AsyncDatabase, get_db
+from app.utils.scrapers import news
 from app.utils.scrapers.proxy import ProxyScraper
-from fastapi import APIRouter, HTTPException, Request, UploadFile, File, Query, Depends
+from fastapi import (
+    APIRouter,
+    BackgroundTasks,
+    HTTPException,
+    Request,
+    UploadFile,
+    File,
+    Query,
+    Depends,
+)
 from fastapi.responses import FileResponse, RedirectResponse
 import app.backend.config as config
 import os
@@ -39,6 +51,13 @@ def verify_key(key: str = Query(...)):
     return key
 
 
+async def add_task(background_tasks: BackgroundTasks, func: Callable, *args, **kwargs):
+    async def wrapper():
+        await func(*args, **kwargs)
+
+    background_tasks.add_task(wrapper)
+
+
 @router.get("/download-db", include_in_schema=False)
 async def download_db(key: str = Depends(verify_key)):
     db_path = os.path.join(config.get_project_root(), os.getenv("DB_NAME"))
@@ -64,17 +83,10 @@ async def create_upload_db(
     return {"message": "Database uploaded successfully"}
 
 
-@router.get("/sync-news")
-async def sync_news(
-    request: Request,
-    db: AsyncDatabase = Depends(get_db),
-    key: str = Depends(verify_key),
-):
+async def sync(recommender: Recommender, db: AsyncDatabase):
     try:
         if os.getenv("MODEL_LANG") == "en":
-            return {
-                "message": "Skipping sync"
-            }  # English model API already has the latest news
+            log.info("Skipping sync")
         log.info("Syncing news...")
         db_name = os.getenv("DB_NAME")
         if os.path.exists(os.path.join(config.get_project_root(), db_name)):
@@ -90,11 +102,23 @@ async def sync_news(
                 await f.write(orig_db.content)
 
         await db.merge_articles(second_db)
-        await request.app.state.recommender.save_news(db)
-        request.app.state.recommender.load_news()
-        return {"message": "News synced successfully"}
+        await recommender.save_news(db)
+        recommender.load_news()
+        log.info("News synced successfully")
     except Exception as e:
+        log.error(f"Error syncing news: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/sync-news")
+async def sync_news(
+    bg: BackgroundTasks,
+    request: Request,
+    db: AsyncDatabase = Depends(get_db),
+    key: str = Depends(verify_key),
+):
+    await add_task(bg, sync, request.app.state.recommender, db)
+    return {"message": "Syncing news started"}
 
 
 @router.get("/download-news", include_in_schema=False)
@@ -125,3 +149,30 @@ async def download_sources(key: str = Depends(verify_key)):
     return FileResponse(
         sources_zip, media_type="application/octet-stream", filename="sources.zip"
     )
+
+
+# TO BE REMOVED
+async def ts(recommender: Recommender, db: AsyncDatabase):
+    log.info("Scraping Abante News...")
+    proxy = ProxyScraper()
+    while proxy.get_proxies() == []:
+        await proxy.scrape_proxies()
+    async with AsyncDatabase() as db:
+        provider = news.Provider.Abante
+        scraper_strategy = news.get_scraper_strategy(provider)
+        news_scraper = news.NewsScraper(scraper_strategy)
+        articles = await news_scraper.scrape_all(proxy)
+        # await db.insert_articles(articles)
+        # await recommender.save_news(db)
+        # print first 5 articles
+        for article in articles[:5]:
+            log.info(article)
+    log.info("Abante News scraped successfully")
+
+
+@router.get("/ts", include_in_schema=False)
+async def test_scrape(
+    bg: BackgroundTasks, request: Request, db: AsyncDatabase = Depends(get_db)
+):
+    await add_task(bg, ts, request.app.state.recommender, db)
+    return {"message": "Scraping started"}
