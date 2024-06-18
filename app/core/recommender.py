@@ -190,6 +190,7 @@ class Recommender:
                 f.write(behavior)
                 behavior_file = f.name
                 log.info(f"Created temporary file: {behavior_file}")
+                log.info(f"Data: {behavior}")
 
             start_time = time.time()
             if hasattr(self.model.test_iterator, "impr_indexes"):
