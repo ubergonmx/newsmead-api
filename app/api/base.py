@@ -89,8 +89,8 @@ async def sync(recommender: Recommender, db: AsyncDatabase):
             log.info("Skipping sync")
         log.info("Syncing news...")
         db_name = os.getenv("DB_NAME")
-        if os.path.exists(os.path.join(config.get_project_root(), db_name)):
-            db_name = "newsmead-en.sqlite"
+        # if os.path.exists(os.path.join(config.get_project_root(), db_name)):
+        #     db_name = "newsmead-en.sqlite"
 
         second_db = os.path.join(config.get_project_root(), db_name)
         async with httpx.AsyncClient() as client:
@@ -101,13 +101,13 @@ async def sync(recommender: Recommender, db: AsyncDatabase):
             async with aiofiles.open(second_db, "wb") as f:
                 await f.write(orig_db.content)
 
-        await db.merge_articles(second_db)
+        # await db.merge_articles(second_db)
         await recommender.save_news(db)
         recommender.load_news()
         log.info("News synced successfully")
     except Exception as e:
         log.error(f"Error syncing news: {e}")
-        log.error(f"Traceback: {e.__traceback__}")
+        log.error(f"Traceback: {e.__traceback__.tb_lasti}")
 
 
 @router.get("/sync-news")
