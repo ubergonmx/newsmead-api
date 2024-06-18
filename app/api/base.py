@@ -161,7 +161,9 @@ async def ts(recommender: Recommender, db: AsyncDatabase):
         provider = news.Provider.Abante
         scraper_strategy = news.get_scraper_strategy(provider)
         news_scraper = news.NewsScraper(scraper_strategy)
-        articles = await news_scraper.scrape_all(proxy)
+        articles = await news_scraper.scrape_category(
+            scraper_strategy.config.categories[0], proxy
+        )
         # await db.insert_articles(articles)
         # await recommender.save_news(db)
         # print first 5 articles
