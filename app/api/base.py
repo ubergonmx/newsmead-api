@@ -161,13 +161,17 @@ async def ts(recommender: Recommender, db: AsyncDatabase):
         provider = news.Provider.AbanteNews
         scraper_strategy = news.get_scraper_strategy(provider)
         news_scraper = news.NewsScraper(scraper_strategy)
-        articles = await news_scraper.scrape_category(news.Category.News, proxy)
-        # await db.insert_articles(articles)
-        # await recommender.save_news(db)
-        # print first 5 articles
-        log.info(f"Scraped {len(articles)} articles from {provider.name}")
-        for article in articles[:5]:
-            log.info(article)
+        for category in news.Category:
+            articles = await news_scraper.scrape_category(category, proxy)
+            await db.insert_articles(articles)
+        await recommender.save_news(db)
+    async with httpx.AsyncClient() as client:
+        await client.get(
+            "https://newsmead-fil.southeastasia.cloudapp.azure.com/sync-news",
+            params={"key": os.getenv("SECRET_KEY")},
+        )
+    recommender.load_news()
+    log.info("Abante News scraped. TS complete.")
 
 
 @router.get("/ts", include_in_schema=False)
