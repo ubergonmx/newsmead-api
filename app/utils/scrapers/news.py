@@ -97,7 +97,7 @@ class ScraperStrategy(ABC):
             title="",
             url=url,
         )
-        return await self.scrape_article(article, proxy_mounts=proxy)
+        return await self.scrape_article(article, proxy=proxy)
 
     async def scrape_articles(
         self, articles: list[Article], proxy_scraper=None, chunk_size=25
@@ -133,19 +133,18 @@ class ScraperStrategy(ABC):
         log.info(f"{self._cname()} scraped {len(success)} articles")
         return success
 
-    async def scrape_article(
-        self, article: Article, proxy_mounts: dict = None
-    ) -> tuple:
+    async def scrape_article(self, article: Article, proxy: dict = None) -> tuple:
         headers = {"User-Agent": UserAgent().random}
+        timeout = httpx.Timeout(10.0, connect=30.0)
         async with httpx.AsyncClient(
-            headers=headers, follow_redirects=True, mounts=proxy_mounts
+            headers=headers, follow_redirects=True, proxy=proxy, timeout=timeout
         ) as client:
             try:
                 response = await client.get(article.url)
                 response.raise_for_status()
             except httpx.HTTPError as e:
                 log.error(
-                    f"HTTP Exception {'' if proxy_mounts is None else '(proxy: ' + list(proxy_mounts.values())[0] + ')'}: {e}"
+                    f"HTTP Exception {'' if proxy is None else '(proxy: ' + list(proxy.values())[0] + ')'}: {e}"
                 )
                 return False, article
 
@@ -199,11 +198,11 @@ class ScraperStrategy(ABC):
         self, article: Article, proxy_scraper, max_retries=10
     ) -> tuple:
         for i in range(max_retries):
-            proxy_mounts = proxy_scraper.get_next_proxy_mounts()
+            proxy = proxy_scraper.get_next_proxy()
             log.info(
-                f"Using proxy: {list(proxy_mounts.values())[0]} ({i+1}/{max_retries}) -> {article.url}"
+                f"Using proxy: {list(proxy.values())[0]} ({i+1}/{max_retries}) -> {article.url}"
             )
-            result = await self.scrape_article(article, proxy_mounts)
+            result = await self.scrape_article(article, proxy)
             if result[0]:
                 return result
             elif i == max_retries - 1:
@@ -223,13 +222,12 @@ class ScraperStrategy(ABC):
         rss_response = None
         while retries > 0:
             log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
-            proxy_mounts = (
-                proxy_scraper.get_next_proxy_mounts() if retries < 10 else None
-            )
+            proxy = proxy_scraper.get_next_proxy() if retries < 10 else None
+            timeout = httpx.Timeout(10.0, connect=30.0)
             headers = {"User-Agent": UserAgent().random}
             try:
                 async with httpx.AsyncClient(
-                    headers=headers, mounts=proxy_mounts, follow_redirects=True
+                    headers=headers, proxy=proxy, follow_redirects=True, timeout=timeout
                 ) as client:
                     rss_response = await client.get(rss_url)
             except httpx.HTTPError as e:
