@@ -165,12 +165,12 @@ async def ts(recommender: Recommender, db: AsyncDatabase):
             articles = await news_scraper.scrape_category(category, proxy)
             await db.insert_articles(articles)
         await recommender.save_news(db)
+    recommender.load_news()
     async with httpx.AsyncClient() as client:
         await client.get(
             "https://newsmead-fil.southeastasia.cloudapp.azure.com/sync-news",
             params={"key": os.getenv("SECRET_KEY")},
         )
-    recommender.load_news()
     log.info("Abante News scraped. TS complete.")
 
 

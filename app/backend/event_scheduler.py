@@ -50,13 +50,14 @@ async def scrape_all_providers(app: FastAPI):
             articles = await news_scraper.scrape_all(proxy)
             await db.insert_articles(articles)
         await recommender.save_news(db)
+    recommender.load_news()
+    log.info("All providers scraped and loaded.")
     async with httpx.AsyncClient() as client:
         await client.get(
             "https://newsmead-fil.southeastasia.cloudapp.azure.com/sync-news",
             params={"key": os.getenv("SECRET_KEY")},
         )
-    recommender.load_news()
-    log.info("All providers scraped.")
+        log.info("Synced news.")
 
 
 # Scheduler jobs
