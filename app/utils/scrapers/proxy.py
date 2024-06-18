@@ -79,7 +79,7 @@ class ProxyScraper:
         self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
         return proxy
 
-    def get_next_proxy_mount(self) -> dict[str, str]:
+    def get_next_proxy_mounts(self) -> dict[str, str]:
         if not self.proxies:
             return None
         proxy = self.proxies[self.current_proxy_index]
