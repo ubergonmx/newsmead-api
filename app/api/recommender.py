@@ -35,7 +35,7 @@ async def recommended_articles(
     try:
         log.info(f"Getting recommended articles for user {user_id}...")
         history = await db.get_user_history(user_id)
-        articles = await db.get_articles(Filter(), page, 500)
+        articles = await db.get_articles(Filter(), page, 50)
         log.info(f"history: {history}")
         log.info(f"history count: {len(history)}")
         log.info(f"articles count: {len(articles)}")
