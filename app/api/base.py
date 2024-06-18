@@ -158,7 +158,7 @@ async def ts(recommender: Recommender, db: AsyncDatabase):
     while proxy.get_proxies() == []:
         await proxy.scrape_proxies()
     async with AsyncDatabase() as db:
-        provider = news.Provider.Abante
+        provider = news.Provider.AbanteNews
         scraper_strategy = news.get_scraper_strategy(provider)
         news_scraper = news.NewsScraper(scraper_strategy)
         articles = await news_scraper.scrape_category(news.Category.News, proxy)

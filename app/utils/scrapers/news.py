@@ -41,7 +41,7 @@ class Provider(Enum):
     # News5 = "news5"
     ManilaBulletin = "manilabulletin"
     INQUIRER = "inquirer"
-    Abante = "abante"
+    AbanteNews = "abantenews"
 
 
 class ScraperConfig(NamedTuple):
@@ -431,11 +431,11 @@ class InquirerScraper(ScraperStrategy):
             return author_link.text.strip() if author_link else None
 
 
-class AbanteScraper(ScraperStrategy):
+class AbanteNewsScraper(ScraperStrategy):
     @property
     def config(self) -> ScraperConfig:
         return ScraperConfig(
-            provider_name=Provider.Abante.value,
+            provider_name=Provider.AbanteNews.value,
             category_mapping={
                 Category.News: "news",
                 Category.Opinion: "op",
@@ -480,7 +480,7 @@ provider_strategy_mapping = {
     Provider.ManilaBulletin: ManilaBulletinScraper(),
     Provider.INQUIRER: InquirerScraper(),
     # Provider.News5: News5Scraper(),
-    Provider.Abante: AbanteScraper(),
+    Provider.AbanteNews: AbanteNewsScraper(),
 }
 
 
