@@ -165,9 +165,9 @@ async def ts(recommender: Recommender, db: AsyncDatabase):
         # await db.insert_articles(articles)
         # await recommender.save_news(db)
         # print first 5 articles
+        log.info(f"Scraped {len(articles)} articles from {provider.name}")
         for article in articles[:5]:
             log.info(article)
-    log.info("Abante News scraped successfully")
 
 
 @router.get("/ts", include_in_schema=False)
