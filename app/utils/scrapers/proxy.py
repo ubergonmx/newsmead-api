@@ -86,7 +86,7 @@ class ProxyScraper:
         self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
         if proxy.startswith("http:"):
             return {"http://": httpx.HTTPTransport(proxy=proxy)}
-        elif proxy.startswith("http:"):
+        elif proxy.startswith("https:"):
             return {"https://": httpx.HTTPSTransport(proxy=proxy)}
 
     def get_proxies(self):
