@@ -249,6 +249,7 @@ class ScraperStrategy(ABC):
 
         if save:
             await self.save_rss(rss_response.content, category)
+        log.info(f"Parsing RSS feed for {category}")
         feed = feedparser.parse(rss_response.content)
 
         articles = []
@@ -265,7 +266,7 @@ class ScraperStrategy(ABC):
                 image_url=image_url,
             )
             articles.append(article)
-
+        log.info(f"Parsed {len(articles)} articles from RSS feed")
         return articles
 
     async def save_rss(self, rss_content: bytes, category: Category):
