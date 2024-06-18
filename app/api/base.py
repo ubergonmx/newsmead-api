@@ -64,6 +64,39 @@ async def create_upload_db(
     return {"message": "Database uploaded successfully"}
 
 
+@router.get("/sync-news")
+async def sync_news(
+    request: Request,
+    db: AsyncDatabase = Depends(get_db),
+    key: str = Depends(verify_key),
+):
+    try:
+        if os.getenv("MODEL_LANG") == "en":
+            return {
+                "message": "Skipping sync"
+            }  # English model API already has the latest news
+        log.info("Syncing news...")
+        db_name = os.getenv("DB_NAME")
+        if os.path.exists(os.path.join(config.get_project_root(), db_name)):
+            db_name = "newsmead-en.sqlite"
+
+        second_db = os.path.join(config.get_project_root(), db_name)
+        async with httpx.AsyncClient() as client:
+            orig_db = await client.get(
+                "https://newsmead.southeastasia.cloudapp.azure.com/download-db",
+                params={"key": os.getenv("SECRET_KEY")},
+            )
+            async with aiofiles.open(second_db, "wb") as f:
+                await f.write(orig_db.content)
+
+        await db.merge_articles(second_db)
+        await request.app.state.recommender.save_news(db)
+        request.app.state.recommender.load_news()
+        return {"message": "News synced successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/download-news", include_in_schema=False)
 async def download_news(key: str = Depends(verify_key)):
     news_path = os.path.join(
