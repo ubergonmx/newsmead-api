@@ -107,7 +107,7 @@ async def sync(recommender: Recommender, db: AsyncDatabase):
         log.info("News synced successfully")
     except Exception as e:
         log.error(f"Error syncing news: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        log.error(f"Traceback: {e.__traceback__}")
 
 
 @router.get("/sync-news")
