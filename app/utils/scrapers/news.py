@@ -146,9 +146,10 @@ class ScraperStrategy(ABC):
                 if proxy is not None:
                     log.info(f"Fetching w/ proxy success")
                 response.raise_for_status()
-            except httpx.HTTPError as e:
+            except (httpx.HTTPError, httpx.TimeoutException) as e:
+
                 log.error(
-                    f"HTTP Exception {'' if proxy is None else '(proxy: ' + list(proxy.values())[0] + ')'}: {e}"
+                    f"HTTP Exception {'' if proxy is None else '(proxy: ' + proxy + ')'}: {e}"
                 )
                 return False, article
 
