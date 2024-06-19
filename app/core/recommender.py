@@ -203,6 +203,12 @@ class Recommender:
                 _,
                 label,
             ) in self.model.test_iterator.load_impression_from_file(behavior_file):
+                if os.getenv("LOG_PREDICT", "quiet") == "verbose":
+                    log.info(f"impr_index: {impr_index}")
+                    log.info(f"news_index: {news_index}")
+                    log.info(f"label: {label}")
+                    log.info(f"user_vecs: {self.model.user_vecs}")
+
                 pred = np.dot(
                     np.stack([self.model.news_vecs[i] for i in news_index], axis=0),
                     self.model.user_vecs[impr_index],
