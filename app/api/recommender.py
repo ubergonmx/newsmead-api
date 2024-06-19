@@ -27,6 +27,7 @@ async def refresh_news(request: Request, db: AsyncDatabase = Depends(get_db)):
 async def recommended_articles(
     request: Request,
     user_id: str,
+    language: str = Query(None),
     page: int = Query(1),
     page_size: int = Query(35),
     db: AsyncDatabase = Depends(get_db),
