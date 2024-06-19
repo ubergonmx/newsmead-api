@@ -228,6 +228,7 @@ class AsyncDatabase:
         lang = Lang()
         articles = []
         language = filter.language.upper() if filter.language else None
+        log.info(f"Filtering articles by language: {language}")
         for article in self._set_articles(results):
             if not article.body:
                 continue
