@@ -218,17 +218,21 @@ class AsyncDatabase:
             else f"SELECT * FROM articles ORDER BY {sort_order} LIMIT ? OFFSET ?;"
         )
 
+        lang = Lang()
+        language = filter.language.upper() if filter.language else None
+        # Temporary fix - set page size to 500 for Filipino language
+        if language == "FILIPINO":
+            original_page_size = page_size
+            page_size = 500
+
         offset = (page - 1) * page_size
         params.extend([page_size, offset])
 
         log.info(f"Query: {query}")
         log.info(f"Params: {params}")
         results = await self.fetch(query, params)
-        # Filter out non-matching lang articles and articles with empty bodies
-        lang = Lang()
         articles = []
-        language = filter.language.upper() if filter.language else None
-        log.info(f"Filtering articles by language: {language}")
+        # Filter out non-matching lang articles and articles with empty bodies
         for article in self._set_articles(results):
             if not article.body:
                 continue
@@ -236,6 +240,10 @@ class AsyncDatabase:
             if language and article.language != language:
                 continue
             articles.append(article)
+
+        # Temporary fix - limit articles to original page size for Filipino language
+        if language == "FILIPINO":
+            articles = articles[:original_page_size]
         return articles
 
     async def get_all_articles_cursor(self) -> aiosqlite.Cursor:
