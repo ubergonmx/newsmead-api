@@ -225,7 +225,7 @@ class AsyncDatabase:
         # Filter out non-matching lang articles and articles with empty bodies
         lang = Lang()
         articles = []
-        language = filter.language.upper() or None
+        language = filter.language.upper() if filter.language else None
         for article in self._set_articles(results):
             if not article.body:
                 continue

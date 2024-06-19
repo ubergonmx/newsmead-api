@@ -28,7 +28,7 @@ async def recommended_articles(
     request: Request,
     user_id: str,
     page: int = Query(1),
-    page_size: int = Query(50),
+    page_size: int = Query(35),
     db: AsyncDatabase = Depends(get_db),
 ):
     articles = []
