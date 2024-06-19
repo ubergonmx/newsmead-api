@@ -221,7 +221,7 @@ class AsyncDatabase:
         lang = Lang()
         language = filter.language.upper() if filter.language else None
         # Temporary fix - set page size to 500 for Filipino language
-        if language == "FILIPINO":
+        if language == "TAGALOG":
             original_page_size = page_size
             page_size = 500
 
@@ -237,13 +237,12 @@ class AsyncDatabase:
             if not article.body:
                 continue
             article.language = lang.detect(article.body)
-            log.info(f"Detected language: {article.language}")
             if language and article.language != language:
                 continue
             articles.append(article)
 
         # Temporary fix - limit articles to original page size for Filipino language
-        if language == "FILIPINO":
+        if language == "TAGALOG":
             articles = articles[:original_page_size]
         return articles
 
