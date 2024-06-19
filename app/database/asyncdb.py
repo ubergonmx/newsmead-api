@@ -237,7 +237,7 @@ class AsyncDatabase:
         for article in self._set_articles(results):
             if not article.body:
                 continue
-            article.language = lang.detect(article.body)
+            article.language = lang.detect(article.body[:250])
             if language and article.language != language:
                 continue
             articles.append(article)
