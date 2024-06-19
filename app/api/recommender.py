@@ -1,3 +1,4 @@
+import os
 from typing import Optional
 from fastapi import APIRouter, Request, HTTPException, Depends, Query
 from app.core.recommender import Recommender
@@ -37,7 +38,11 @@ async def recommended_articles(
     try:
         log.info(f"Getting recommended articles for user {user_id}...")
         history = await db.get_user_history(user_id)
-        articles = await db.get_articles(Filter(language=language), page, page_size)
+        filter = Filter(language=language)
+        articles = await db.get_articles(filter, page, page_size)
+        # log filter if LOG_PREDICT from env is verbose
+        if os.getenv("LOG_PREDICT") == "verbose":
+            log.info(f"filter: {filter}")
         log.info(f"history: {history}")
         log.info(f"history count: {len(history)}")
         log.info(f"articles count: {len(articles)}")

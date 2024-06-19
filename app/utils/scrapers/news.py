@@ -140,7 +140,11 @@ class ScraperStrategy(ABC):
             headers=headers, follow_redirects=True, proxy=proxy, timeout=timeout
         ) as client:
             try:
+                if proxy is not None:
+                    log.info(f"Fetching w/ proxy: {article.url} {timeout}")
                 response = await client.get(article.url)
+                if proxy is not None:
+                    log.info(f"Fetching w/ proxy success")
                 response.raise_for_status()
             except httpx.HTTPError as e:
                 log.error(
