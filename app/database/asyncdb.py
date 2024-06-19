@@ -237,6 +237,7 @@ class AsyncDatabase:
             if not article.body:
                 continue
             article.language = lang.detect(article.body)
+            log.info(f"Detected language: {article.language}")
             if language and article.language != language:
                 continue
             articles.append(article)
