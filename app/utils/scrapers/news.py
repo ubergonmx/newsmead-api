@@ -199,9 +199,7 @@ class ScraperStrategy(ABC):
     ) -> tuple:
         for i in range(max_retries):
             proxy = proxy_scraper.get_next_proxy()
-            log.info(
-                f"Using proxy: {list(proxy.values())[0]} ({i+1}/{max_retries}) -> {article.url}"
-            )
+            log.info(f"Using proxy: {proxy} ({i+1}/{max_retries}) -> {article.url}")
             result = await self.scrape_article(article, proxy)
             if result[0]:
                 return result
