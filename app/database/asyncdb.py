@@ -115,6 +115,8 @@ class AsyncDatabase:
         for article in articles:
             try:
                 article_dict = article.model_dump()
+                # Temporary fix - remove language data for now
+                article_dict.pop("language", None)
 
                 # Check if article already exists in the database
                 if article_dict["url"] in existing_urls:
