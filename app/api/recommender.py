@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Request, HTTPException, Depends, Query
 from app.core.recommender import Recommender
 from app.database.asyncdb import AsyncDatabase, get_db
@@ -27,16 +28,16 @@ async def refresh_news(request: Request, db: AsyncDatabase = Depends(get_db)):
 async def recommended_articles(
     request: Request,
     user_id: str,
-    language: str = Query(None),
     page: int = Query(1),
     page_size: int = Query(35),
+    language: Optional[str] = Query(None),
     db: AsyncDatabase = Depends(get_db),
 ):
     articles = []
     try:
         log.info(f"Getting recommended articles for user {user_id}...")
         history = await db.get_user_history(user_id)
-        articles = await db.get_articles(Filter(), page, page_size)
+        articles = await db.get_articles(Filter(language=language), page, page_size)
         log.info(f"history: {history}")
         log.info(f"history count: {len(history)}")
         log.info(f"articles count: {len(articles)}")
