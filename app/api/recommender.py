@@ -28,14 +28,14 @@ async def recommended_articles(
     request: Request,
     user_id: str,
     page: int = Query(1),
-    page_size: int = Query(35),
+    page_size: int = Query(50),
     db: AsyncDatabase = Depends(get_db),
 ):
     articles = []
     try:
         log.info(f"Getting recommended articles for user {user_id}...")
         history = await db.get_user_history(user_id)
-        articles = await db.get_articles(Filter(), page, 50)
+        articles = await db.get_articles(Filter(), page, page_size)
         log.info(f"history: {history}")
         log.info(f"history count: {len(history)}")
         log.info(f"articles count: {len(articles)}")
