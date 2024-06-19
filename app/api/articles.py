@@ -21,6 +21,7 @@ async def get_articles(
     startDate: Optional[str] = Query(None),
     endDate: Optional[str] = Query(None),
     text: Optional[str] = Query(None),
+    language: Optional[str] = Query(None),
     sortBy: Optional[str] = Query(None),
     page: int = Query(1),
     page_size: int = Query(30),
@@ -32,6 +33,7 @@ async def get_articles(
         startDate=startDate,
         endDate=endDate,
         text=text,
+        language=language,
         sortBy=sortBy,
     )
     try:

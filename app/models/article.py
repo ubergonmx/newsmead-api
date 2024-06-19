@@ -13,10 +13,12 @@ class Article(BaseModel):
     body: str = ""
     image_url: Optional[str] = ""
     read_time: str = ""
+    language: Optional[str] = None
 
 
 class Filter(BaseModel):
     text: Optional[str] = None
+    language: Optional[str] = None
     category: Optional[str] = None
     source: Optional[str] = None
     sortBy: Optional[str] = None

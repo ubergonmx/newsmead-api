@@ -224,12 +224,15 @@ class AsyncDatabase:
         results = await self.fetch(query, params)
         # Filter out non-matching lang articles and articles with empty bodies
         lang = Lang()
-        language = "ENGLISH" if os.getenv("MODEL_LANG", "en") == "en" else "TAGALOG"
-        articles = [
-            article
-            for article in self._set_articles(results)
-            if article.body and lang.detect(article.body) == language
-        ]
+        articles = []
+        language = filter.language.upper() or None
+        for article in self._set_articles(results):
+            if not article.body:
+                continue
+            article.language = lang.detect(article.body)
+            if language and article.language != language:
+                continue
+            articles.append(article)
         return articles
 
     async def get_all_articles_cursor(self) -> aiosqlite.Cursor:
