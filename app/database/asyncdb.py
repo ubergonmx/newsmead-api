@@ -221,7 +221,8 @@ class AsyncDatabase:
         lang = Lang()
         language = filter.language.upper() if filter.language else None
         # Temporary fix - set page size to 500 for Filipino language
-        if language == "TAGALOG":
+        if language == "TAGALOG" or language == "FILIPINO":
+            language = "TAGALOG"
             original_page_size = page_size
             page_size = 500
 
