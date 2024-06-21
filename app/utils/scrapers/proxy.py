@@ -89,5 +89,12 @@ class ProxyScraper:
         elif proxy.startswith("https:"):
             return {"https://": httpx.HTTPSTransport(proxy=proxy)}
 
+    def get_next_proxy_deprecated(self) -> dict[str, str]:
+        if not self.proxies:
+            return None
+        proxy = self.proxies[self.current_proxy_index]
+        self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxies)
+        return {"http://": proxy} if proxy.startswith("http:") else {"https://": proxy}
+
     def get_proxies(self):
         return self.proxies

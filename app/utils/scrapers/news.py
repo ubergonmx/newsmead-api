@@ -138,7 +138,7 @@ class ScraperStrategy(ABC):
         headers = {"User-Agent": UserAgent().random}
         timeout = httpx.Timeout(10.0, connect=30.0)
         async with httpx.AsyncClient(
-            headers=headers, follow_redirects=True, proxy=proxy, timeout=timeout
+            headers=headers, follow_redirects=True, proxies=proxy, timeout=timeout
         ) as client:
             try:
                 if proxy is not None:
@@ -148,7 +148,6 @@ class ScraperStrategy(ABC):
                     log.info(f"Fetching w/ proxy success")
                 response.raise_for_status()
             except (httpx.HTTPError, httpx.TimeoutException) as e:
-
                 log.error(
                     f"HTTP Exception {'' if proxy is None else '(proxy: ' + proxy + ')'}: {e}"
                 )
@@ -204,7 +203,7 @@ class ScraperStrategy(ABC):
         self, article: Article, proxy_scraper, max_retries=10
     ) -> tuple:
         for i in range(max_retries):
-            proxy = proxy_scraper.get_next_proxy()
+            proxy = proxy_scraper.get_next_proxy_deprecated()
             log.info(f"Using proxy: {proxy} ({i+1}/{max_retries}) -> {article.url}")
             result = await self.scrape_article(article, proxy)
             if result[0]:
@@ -226,12 +225,15 @@ class ScraperStrategy(ABC):
         rss_response = None
         while retries > 0:
             log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
-            proxy = proxy_scraper.get_next_proxy() if retries < 10 else None
+            proxy = proxy_scraper.get_next_proxy_deprecated() if retries < 10 else None
             timeout = httpx.Timeout(10.0, connect=30.0)
             headers = {"User-Agent": UserAgent().random}
             try:
                 async with httpx.AsyncClient(
-                    headers=headers, proxy=proxy, follow_redirects=True, timeout=timeout
+                    headers=headers,
+                    proxies=proxy,
+                    follow_redirects=True,
+                    timeout=timeout,
                 ) as client:
                     rss_response = await client.get(rss_url)
             except httpx.HTTPError as e:
@@ -516,12 +518,15 @@ class ABSCBNScraper(ScraperStrategy):
         rss_response = None
         while retries > 0:
             log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
-            proxy = proxy_scraper.get_next_proxy() if retries < 10 else None
+            proxy = proxy_scraper.get_next_proxy_deprecated() if retries < 10 else None
             timeout = httpx.Timeout(10.0, connect=30.0)
             headers = {"User-Agent": UserAgent().random}
             try:
                 async with httpx.AsyncClient(
-                    headers=headers, proxy=proxy, follow_redirects=True, timeout=timeout
+                    headers=headers,
+                    proxies=proxy,
+                    follow_redirects=True,
+                    timeout=timeout,
                 ) as client:
                     rss_response = await client.get(rss_url)
             except httpx.HTTPError as e:
