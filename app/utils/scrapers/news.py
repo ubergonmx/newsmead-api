@@ -37,10 +37,11 @@ class Category(Enum):
 
 class Provider(Enum):
     GMANews = "gmanews"
-    Philstar = "philstar"
     # News5 = "news5"
-    ManilaBulletin = "manilabulletin"
     INQUIRER = "inquirer"
+    ManilaBulletin = "manilabulletin"
+    Philstar = "philstar"
+    ABSCBN = "abs-cbn"
     AbanteNews = "abantenews"
 
 
@@ -436,6 +437,29 @@ class InquirerScraper(ScraperStrategy):
             return author_link.text.strip() if author_link else None
 
 
+class News5Scraper(ScraperStrategy):
+    @property
+    def config(self) -> ScraperConfig:
+        return ScraperConfig(
+            provider_name=Provider.News5.value,
+            category_mapping={
+                Category.News: "news",
+                Category.Opinion: "opinion",
+                Category.Sports: "sports",
+                Category.Technology: "tech",
+                Category.Lifestyle: "lifestyle",
+                Category.Business: "business",
+                Category.Entertainment: "entertainment",
+            },
+            rss_url="https://news.tv5.com.ph/rss/[category]",
+            default_author="News5",
+        )
+
+    def extract_author(self, soup: BeautifulSoup) -> str:
+        author_tag = soup.find("div", class_="author")
+        return author_tag.text.strip() if author_tag else None
+
+
 class AbanteNewsScraper(ScraperStrategy):
     @property
     def config(self) -> ScraperConfig:
@@ -455,6 +479,94 @@ class AbanteNewsScraper(ScraperStrategy):
 
     def extract_author(self, soup: BeautifulSoup) -> str:
         return None
+
+
+class ABSCBNScraper(ScraperStrategy):
+    @property
+    def config(self) -> ScraperConfig:
+        return ScraperConfig(
+            provider_name=Provider.ABSCBN.value,
+            category_mapping={
+                Category.News: "news",
+                Category.Opinion: "opinion",
+                Category.Sports: "sports",
+                Category.Technology: "technology",
+                Category.Lifestyle: "lifestyle",
+                Category.Business: "business",
+                Category.Entertainment: "entertainment",
+            },
+            rss_url="https://news.abs-cbn.com/rss/mobile/latest-news",
+            default_author="ABS-CBN News",
+        )
+
+    def extract_author(self, soup: BeautifulSoup) -> str:
+        author_tag = soup.find("div", class_="author")
+        return author_tag.text.strip() if author_tag else None
+
+    async def fetch_and_parse_rss(
+        self, category: Category, proxy_scraper, retries=10, save=True
+    ) -> list[Article]:
+        if self.config.rss_url is None:
+            log.error(f"RSS URL not defined for {self.config.provider_name}")
+            return []
+
+        rss_url = self.config.rss_url
+        log.info(f"RSS Feed URL: {rss_url}")
+
+        rss_response = None
+        while retries > 0:
+            log.info(f"Fetching RSS feed for {category} ({retries} retries left)")
+            proxy = proxy_scraper.get_next_proxy() if retries < 10 else None
+            timeout = httpx.Timeout(10.0, connect=30.0)
+            headers = {"User-Agent": UserAgent().random}
+            try:
+                async with httpx.AsyncClient(
+                    headers=headers, proxy=proxy, follow_redirects=True, timeout=timeout
+                ) as client:
+                    rss_response = await client.get(rss_url)
+            except httpx.HTTPError as e:
+                log.error("Connection error: " + str(e))
+                retries -= 1
+                continue
+
+            if rss_response.status_code != 200:
+                log.error(f"RSS status code: {rss_response.status_code}")
+                retries -= 1
+            else:
+                break
+
+            if retries == 0:
+                log.error(f"Failed to fetch RSS feed for {category}")
+                return []
+
+        if rss_response is None:
+            log.error(f"No response from RSS feed for {category}")
+            return []
+
+        if save:
+            await self.save_rss(rss_response.content, category)
+        log.info(f"Parsing RSS feed for {category}")
+        feed = feedparser.parse(rss_response.content)
+
+        articles = []
+        for entry in feed.entries:
+            if category.value not in entry.link:
+                continue
+
+            image_url = ""
+            if "media_content" in entry and "url" in entry.media_content[0]:
+                image_url = entry.media_content[0]["url"]
+            article = Article(
+                date=self.parse_date_complete(entry.published),
+                category=category.value,
+                source=self.config.provider_name,
+                title=entry.title,
+                url=entry.link,
+                image_url=image_url,
+            )
+            articles.append(article)
+        log.info(f"Parsed {len(articles)} articles from RSS feed")
+        return articles
 
 
 class NewsScraper:
@@ -485,6 +597,7 @@ provider_strategy_mapping = {
     Provider.ManilaBulletin: ManilaBulletinScraper(),
     Provider.INQUIRER: InquirerScraper(),
     # Provider.News5: News5Scraper(),
+    Provider.ABSCBN: ABSCBNScraper(),
     Provider.AbanteNews: AbanteNewsScraper(),
 }
 
