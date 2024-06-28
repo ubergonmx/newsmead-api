@@ -37,7 +37,7 @@ class Category(Enum):
 
 class Provider(Enum):
     GMANews = "gmanews"
-    # News5 = "news5"
+    News5 = "news5"
     INQUIRER = "inquirer"
     ManilaBulletin = "manilabulletin"
     Philstar = "philstar"
@@ -453,7 +453,7 @@ class News5Scraper(ScraperStrategy):
                 Category.Business: "business",
                 Category.Entertainment: "entertainment",
             },
-            rss_url="https://news.tv5.com.ph/rss/[category]",
+            web_url="https://news.tv5.com.ph/articles/[category]",
             default_author="News5",
         )
 
@@ -601,7 +601,7 @@ provider_strategy_mapping = {
     Provider.Philstar: PhilstarScraper(),
     Provider.ManilaBulletin: ManilaBulletinScraper(),
     Provider.INQUIRER: InquirerScraper(),
-    # Provider.News5: News5Scraper(),
+    Provider.News5: News5Scraper(),
     Provider.ABSCBN: ABSCBNScraper(),
     Provider.AbanteNews: AbanteNewsScraper(),
 }
