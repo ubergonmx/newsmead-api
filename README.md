@@ -24,7 +24,8 @@ List of **GET** endpoints:
 > ```bash
 > pip install virtualenv
 > virtualenv -p python3.9 venv
-> "./venv/Scripts/activate"
+> "./venv/Scripts/activate" # for Windows
+> source venv/bin/activate # for Linux
 > ```
 
 1. Install requirements
