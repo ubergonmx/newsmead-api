@@ -3,6 +3,7 @@ from azure.ai.translation.text import TextTranslationClient, TranslatorCredentia
 from azure.ai.translation.text.models import InputTextItem
 from azure.core.exceptions import HttpResponseError
 from google.cloud import translate_v2 as translate
+from eld import LanguageDetector as EldLanguageDetector
 import os
 import logging
 
@@ -13,15 +14,17 @@ log = logging.getLogger(__name__)
 class Lang:
     def __init__(self, detector=True, all=False):
         if detector:
-            self.detector = (
-                LanguageDetectorBuilder.from_all_languages()
-                if all
-                else LanguageDetectorBuilder.from_languages(
-                    Language.ENGLISH, Language.TAGALOG
-                ).build()
-            )
+            # self.detector = (
+            #     LanguageDetectorBuilder.from_all_languages()
+            #     if all
+            #     else LanguageDetectorBuilder.from_languages(
+            #         Language.ENGLISH, Language.TAGALOG
+            #     ).build()
+            # )
+            self.detector = EldLanguageDetector()
+            self.detector.lang_subset = ["en", "tl"]
 
-    def detect(self, text) -> str:
+    def detect_lingua(self, text) -> str:
         """
         Returns the top language of the text.
 
@@ -32,7 +35,19 @@ class Lang:
         """
         return self.detector.detect_language_of(text).name
 
-    def detect_with_score(self, text) -> dict[str, float]:
+    def detect(self, text) -> str:
+        """
+        Returns the top language of the text.
+
+        Example:
+        ```
+        "tl"
+        ```
+        """
+        lang = self.detector.detect(text).language
+        return "ENGLISH" if lang == "en" else "TAGALOG" if lang == "tl" else lang
+
+    def detect_with_score_lingua(self, text) -> dict[str, float]:
         """
         Returns a dict with the top language and the confidence score.
 
@@ -47,11 +62,32 @@ class Lang:
         result = self.detector.compute_language_confidence_values(text)
         return {"lang": result[0].language.name, "score": result[0].value}
 
+    def detect_with_score(self, text) -> dict[str, float]:
+        """
+        Returns a dict with the top language and the confidence score.
+
+        Example:
+        ```
+        {
+            "lang": "TAGALOG",
+            "score": 0.9585779901734812
+        }
+        ```
+        """
+        result = self.detector.detect(text)
+        return {"lang": result.language, "score": result.scores()[result.language]}
+
     def is_english(self, text) -> bool:
         """
         Returns True if the text is in English.
         """
-        return self.detect(text) == "ENGLISH"
+        return self.detect(text) == "ENGLISH" or self.detect(text) == "en"
+
+    def is_tagalog(self, text) -> bool:
+        """
+        Returns True if the text is in Tagalog.
+        """
+        return self.detect(text) == "TAGALOG" or self.detect(text) == "tl"
 
     def translate_text(
         self, text: str, source: str = "en", target: str = "fil", service: str = "bing"
