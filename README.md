@@ -18,7 +18,7 @@ List of **GET** endpoints:
 
 > **NOTE**: Must have Python version **3.9** for recommenders package.
 >
-> (Optional)
+> (Recommended)
 > Install and use virtual environment with `virtualenv`
 >
 > ```bash
@@ -40,14 +40,16 @@ pip install -r requirements.txt
 playwright install
 ```
 
-3. Add recommender system
+3. Duplicate `.env.example` and rename it as `.env` (fill the necessary variables)
+
+4. Add NAML recommender system
 
 ```bash
 cd app/core
 python setup.py
 ```
 
-4. Run server
+5. Run server
 
 ```bash
 # go back to project root folder
