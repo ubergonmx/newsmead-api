@@ -14,15 +14,17 @@ log = logging.getLogger(__name__)
 class Lang:
     def __init__(self, detector=True, all=False):
         if detector:
-            # self.detector = (
-            #     LanguageDetectorBuilder.from_all_languages()
-            #     if all
-            #     else LanguageDetectorBuilder.from_languages(
-            #         Language.ENGLISH, Language.TAGALOG
-            #     ).build()
-            # )
-            self.detector = EldLanguageDetector()
-            self.detector.lang_subset = ["en", "tl"]
+            if os.getenv("LANGUAGE_DETECTOR") == "lingua":
+                self.detector = (
+                    LanguageDetectorBuilder.from_all_languages()
+                    if all
+                    else LanguageDetectorBuilder.from_languages(
+                        Language.ENGLISH, Language.TAGALOG
+                    ).build()
+                )
+            else:
+                self.detector = EldLanguageDetector()
+                self.detector.lang_subset = ["en", "tl"]
 
     def detect_lingua(self, text) -> str:
         """
@@ -44,6 +46,9 @@ class Lang:
         "tl"
         ```
         """
+        if os.getenv("LANGUAGE_DETECTOR") == "lingua":
+            return self.detect_lingua(text)
+
         lang = self.detector.detect(text).language
         return "ENGLISH" if lang == "en" else "TAGALOG" if lang == "tl" else lang
 
@@ -74,6 +79,9 @@ class Lang:
         }
         ```
         """
+        if os.getenv("LANGUAGE_DETECTOR") == "lingua":
+            return self.detect_with_score_lingua(text)
+
         result = self.detector.detect(text)
         return {"lang": result.language, "score": result.scores()[result.language]}
 
