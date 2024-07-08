@@ -16,8 +16,6 @@ List of **GET** endpoints:
 
 ## How to run
 
-> **NOTE**: Must have Python version **3.9** for recommenders package.
->
 > (Recommended)
 > Install and use virtual environment with `virtualenv`
 >
